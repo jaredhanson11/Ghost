@@ -18,7 +18,6 @@
 		044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737471CFF7613004FBC45 /* HTTPRequests.swift */; };
 		0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737491CFF8AE3004FBC45 /* SignupViewController.swift */; };
 		048377D51D2D6EAC00A76553 /* ContactsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */; };
-		048377DB1D2E07D600A76553 /* AddContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048377DA1D2E07D600A76553 /* AddContactViewController.swift */; };
 		04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */; };
 		3799BB2ECE2A40A65FE05C7E /* Pods_ghost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 191761CA328F578AC846EACC /* Pods_ghost.framework */; };
 /* End PBXBuildFile section */
@@ -73,7 +72,6 @@
 		044737491CFF8AE3004FBC45 /* SignupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
 		048377CB1D2D4E6B00A76553 /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
 		048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsTableViewController.swift; sourceTree = "<group>"; };
-		048377DA1D2E07D600A76553 /* AddContactViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddContactViewController.swift; sourceTree = "<group>"; };
 		04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTableViewController.swift; sourceTree = "<group>"; };
 		191761CA328F578AC846EACC /* Pods_ghost.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ghost.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A39E2608394CEF67D9777F4F /* Pods-ghost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ghost.release.xcconfig"; path = "Pods/Target Support Files/Pods-ghost/Pods-ghost.release.xcconfig"; sourceTree = "<group>"; };
@@ -136,7 +134,6 @@
 				044737491CFF8AE3004FBC45 /* SignupViewController.swift */,
 				04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */,
 				048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */,
-				048377DA1D2E07D600A76553 /* AddContactViewController.swift */,
 				044737451CFF578D004FBC45 /* Validation.swift */,
 				044737471CFF7613004FBC45 /* HTTPRequests.swift */,
 				0447371B1CFF4DBB004FBC45 /* Main.storyboard */,
@@ -402,7 +399,6 @@
 				0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */,
 				044737461CFF578D004FBC45 /* Validation.swift in Sources */,
 				04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */,
-				048377DB1D2E07D600A76553 /* AddContactViewController.swift in Sources */,
 				044737181CFF4DBB004FBC45 /* AppDelegate.swift in Sources */,
 				048377D51D2D6EAC00A76553 /* ContactsTableViewController.swift in Sources */,
 			);
