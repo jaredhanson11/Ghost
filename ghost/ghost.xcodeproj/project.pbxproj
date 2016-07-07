@@ -18,6 +18,7 @@
 		044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737471CFF7613004FBC45 /* HTTPRequests.swift */; };
 		0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737491CFF8AE3004FBC45 /* SignupViewController.swift */; };
 		048377D51D2D6EAC00A76553 /* ContactsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */; };
+		04C47C561D2EC1AA0023AD58 /* CacheDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 04C47C541D2EC1AA0023AD58 /* CacheDataModel.xcdatamodeld */; };
 		04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */; };
 		3799BB2ECE2A40A65FE05C7E /* Pods_ghost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 191761CA328F578AC846EACC /* Pods_ghost.framework */; };
 /* End PBXBuildFile section */
@@ -72,6 +73,7 @@
 		044737491CFF8AE3004FBC45 /* SignupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
 		048377CB1D2D4E6B00A76553 /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
 		048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsTableViewController.swift; sourceTree = "<group>"; };
+		04C47C551D2EC1AA0023AD58 /* CacheDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CacheDataModel.xcdatamodel; sourceTree = "<group>"; };
 		04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTableViewController.swift; sourceTree = "<group>"; };
 		191761CA328F578AC846EACC /* Pods_ghost.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ghost.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A39E2608394CEF67D9777F4F /* Pods-ghost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ghost.release.xcconfig"; path = "Pods/Target Support Files/Pods-ghost/Pods-ghost.release.xcconfig"; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 				0447371E1CFF4DBB004FBC45 /* Assets.xcassets */,
 				044737201CFF4DBB004FBC45 /* LaunchScreen.storyboard */,
 				044737231CFF4DBB004FBC45 /* Info.plist */,
+				04C47C541D2EC1AA0023AD58 /* CacheDataModel.xcdatamodeld */,
 			);
 			path = ghost;
 			sourceTree = "<group>";
@@ -396,6 +399,7 @@
 			files = (
 				0447371A1CFF4DBB004FBC45 /* LoginViewController.swift in Sources */,
 				044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */,
+				04C47C561D2EC1AA0023AD58 /* CacheDataModel.xcdatamodeld in Sources */,
 				0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */,
 				044737461CFF578D004FBC45 /* Validation.swift in Sources */,
 				04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */,
@@ -650,6 +654,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		04C47C541D2EC1AA0023AD58 /* CacheDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				04C47C551D2EC1AA0023AD58 /* CacheDataModel.xcdatamodel */,
+			);
+			currentVersion = 04C47C551D2EC1AA0023AD58 /* CacheDataModel.xcdatamodel */;
+			path = CacheDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 0447370C1CFF4DBB004FBC45 /* Project object */;
 }

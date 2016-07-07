@@ -14,6 +14,9 @@ class ContactsTableViewController: UITableViewController {
     var userID: String = ""
     var contacts: Array<String> = Array <String>()
     
+    // Core Data persistence array
+    var contactsCache = [NSManagedObject]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
@@ -46,6 +49,20 @@ class ContactsTableViewController: UITableViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("Contacts Table View Controller: " + userID)
+        super.viewWillAppear(animated)
+        
+        // THIS IS THE CACHE FETCH CODE, FIND USE CASE FOR CACHING
+//        let appDelegate =
+//            UIApplication.sharedApplication().delegate as! AppDelegate
+//        let managedContext = appDelegate.managedObjectContext
+//        let fetchRequest = NSFetchRequest(entityName: "Person")
+//        do {
+//            let results =
+//                try managedContext.executeFetchRequest(fetchRequest)
+//            people = results as! [NSManagedObject]
+//        } catch let error as NSError {
+//            print("Could not fetch \(error), \(error.userInfo)")
+//        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -93,13 +110,18 @@ class ContactsTableViewController: UITableViewController {
                 signupIssue.addAction(action)
                 self.presentViewController(signupIssue, animated: true, completion: nil)
             } else {
-                // Critical importance: pass callbacks to asychronous tasks to gather the data
+                // SAVE TO SERVER
                 let resource: String = self.userID + "/contact"
                 let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["username" : username])
                 http.POST({ (json) -> Void in
                     let success = json["success"] as! Int
                     let data = json["data"] as! [String:AnyObject]
                     if success == 1 {
+                        // SAVE TO CACHE
+                        let contact_id = Int((Array((data["contacts"] as! [String:String]).keys)[0]))!
+                        self.saveContact(username, contactID: contact_id)
+                        // self.tableView.reloadData()
+                        
                         let message: String = "You successfully added " + username + "!"
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
                         let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
@@ -126,6 +148,24 @@ class ContactsTableViewController: UITableViewController {
         }
         addAlert.addAction(action)
         self.presentViewController(addAlert, animated: true, completion: nil)
+    }
+    
+    func saveContact(contactUsername: String, contactID: Int) {
+        let appDelegate =
+            UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        let entity =  NSEntityDescription.entityForName("Contact",
+                                                        inManagedObjectContext:managedContext)
+        let contact = NSManagedObject(entity: entity!,
+                                     insertIntoManagedObjectContext: managedContext)
+        contact.setValue(contactUsername, forKey: "contact_username")
+        contact.setValue(contactID, forKey: "contact_id")
+        do {
+            try managedContext.save()
+            contactsCache.append(contact)
+        } catch let error as NSError  {
+            print("Could not save \(error), \(error.userInfo)")
+        }
     }
     
     // MARK: - Table view data source
