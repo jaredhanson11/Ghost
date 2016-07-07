@@ -25,6 +25,7 @@ class ContactsTableViewController: UITableViewController {
         let resource: String = userID + "/" + "contact"
         let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
         http.GET({ (json) -> Void in
+            print("YEAH BOI")
             let success = json["success"] as! Int
             if success == 1 {
                 let data = json["data"] as! [String:AnyObject]
@@ -118,16 +119,19 @@ class ContactsTableViewController: UITableViewController {
                     let data = json["data"] as! [String:AnyObject]
                     if success == 1 {
                         // SAVE TO CACHE
-                        let contact_id = Int((Array((data["contacts"] as! [String:String]).keys)[0]))!
-                        self.saveContact(username, contactID: contact_id)
-                        // self.tableView.reloadData()
+                        //{'data': {5: 'thomasc'}, 'success': 1}
+                        //let contact_id = Array(data.keys)[0]
+                        //self.saveContact(username, contactID: contact_id)
                         
+                        self.contacts.append(username)
                         let message: String = "You successfully added " + username + "!"
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
                         let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
                         contactAddSuccess.addAction(action)
                         dispatch_async(dispatch_get_main_queue()) {
-                            self.presentViewController(contactAddSuccess, animated: true, completion: nil)
+                            self.presentViewController(contactAddSuccess, animated: true, completion: { () -> Void in
+                                self.tableView.reloadData()
+                            })
                         }
                     } else {
                         let error = data["error"] as! String
