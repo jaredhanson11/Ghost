@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0438D27E1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0438D27C1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld */; };
 		044737181CFF4DBB004FBC45 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737171CFF4DBB004FBC45 /* AppDelegate.swift */; };
 		0447371A1CFF4DBB004FBC45 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737191CFF4DBB004FBC45 /* LoginViewController.swift */; };
 		0447371D1CFF4DBB004FBC45 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0447371B1CFF4DBB004FBC45 /* Main.storyboard */; };
@@ -18,7 +19,6 @@
 		044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737471CFF7613004FBC45 /* HTTPRequests.swift */; };
 		0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737491CFF8AE3004FBC45 /* SignupViewController.swift */; };
 		048377D51D2D6EAC00A76553 /* ContactsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */; };
-		048377DB1D2E07D600A76553 /* AddContactViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 048377DA1D2E07D600A76553 /* AddContactViewController.swift */; };
 		04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */; };
 		3799BB2ECE2A40A65FE05C7E /* Pods_ghost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 191761CA328F578AC846EACC /* Pods_ghost.framework */; };
 /* End PBXBuildFile section */
@@ -55,6 +55,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0438D27D1D2F04B000AE23BC /* CacheDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CacheDataModel.xcdatamodel; sourceTree = "<group>"; };
 		044737141CFF4DBB004FBC45 /* ghost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ghost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		044737171CFF4DBB004FBC45 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		044737191CFF4DBB004FBC45 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
@@ -73,7 +74,6 @@
 		044737491CFF8AE3004FBC45 /* SignupViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignupViewController.swift; sourceTree = "<group>"; };
 		048377CB1D2D4E6B00A76553 /* Pods.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Pods.xcodeproj; path = Pods/Pods.xcodeproj; sourceTree = "<group>"; };
 		048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsTableViewController.swift; sourceTree = "<group>"; };
-		048377DA1D2E07D600A76553 /* AddContactViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddContactViewController.swift; sourceTree = "<group>"; };
 		04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTableViewController.swift; sourceTree = "<group>"; };
 		191761CA328F578AC846EACC /* Pods_ghost.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ghost.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A39E2608394CEF67D9777F4F /* Pods-ghost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ghost.release.xcconfig"; path = "Pods/Target Support Files/Pods-ghost/Pods-ghost.release.xcconfig"; sourceTree = "<group>"; };
@@ -136,13 +136,13 @@
 				044737491CFF8AE3004FBC45 /* SignupViewController.swift */,
 				04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */,
 				048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */,
-				048377DA1D2E07D600A76553 /* AddContactViewController.swift */,
 				044737451CFF578D004FBC45 /* Validation.swift */,
 				044737471CFF7613004FBC45 /* HTTPRequests.swift */,
 				0447371B1CFF4DBB004FBC45 /* Main.storyboard */,
 				0447371E1CFF4DBB004FBC45 /* Assets.xcassets */,
 				044737201CFF4DBB004FBC45 /* LaunchScreen.storyboard */,
 				044737231CFF4DBB004FBC45 /* Info.plist */,
+				0438D27C1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld */,
 			);
 			path = ghost;
 			sourceTree = "<group>";
@@ -399,10 +399,10 @@
 			files = (
 				0447371A1CFF4DBB004FBC45 /* LoginViewController.swift in Sources */,
 				044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */,
+				0438D27E1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld in Sources */,
 				0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */,
 				044737461CFF578D004FBC45 /* Validation.swift in Sources */,
 				04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */,
-				048377DB1D2E07D600A76553 /* AddContactViewController.swift in Sources */,
 				044737181CFF4DBB004FBC45 /* AppDelegate.swift in Sources */,
 				048377D51D2D6EAC00A76553 /* ContactsTableViewController.swift in Sources */,
 			);
@@ -654,6 +654,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		0438D27C1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				0438D27D1D2F04B000AE23BC /* CacheDataModel.xcdatamodel */,
+			);
+			currentVersion = 0438D27D1D2F04B000AE23BC /* CacheDataModel.xcdatamodel */;
+			path = CacheDataModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 0447370C1CFF4DBB004FBC45 /* Project object */;
 }

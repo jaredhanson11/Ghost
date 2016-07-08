@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class MainTableViewController: UITableViewController {
     
@@ -16,6 +17,28 @@ class MainTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Main"
+        
+        // SAVE CONTACTS TO CACHE
+        let resource: String = userID + "/" + "contact"
+        let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
+        http.GET({ (json) -> Void in
+            let success = json["success"] as! Int
+            if success == 1 {
+                let data = json["data"] as! [String:AnyObject]
+                let contactDict = data["contacts"] as! [String:String]
+                let contactIdList = contactDict.keys
+                for contactId in contactIdList {
+                    self.saveContact(contactDict[contactId]!, contactID: Int(contactId)!)
+                }
+            } else {
+                // let data = json["data"] as! [String:AnyObject]
+                // let error = data["error"] as! String
+            }
+        })
+        
+        // TODO: SAVE MESSAGES TO CACHE
+        
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -34,27 +57,47 @@ class MainTableViewController: UITableViewController {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "to-contacts" {
+            // load userID into viewcontroller property
             let destination = segue.destinationViewController as! ContactsTableViewController
             destination.userID = self.userID
         }
     }
+    
+    // likely will make a caching class, but for now standalone methods
+    func saveContact(contactUsername: String, contactID: Int) {
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        let entity =  NSEntityDescription.entityForName("Contact", inManagedObjectContext:managedContext)
+        let contact = NSManagedObject(entity: entity!, insertIntoManagedObjectContext: managedContext)
+        contact.setValue(contactUsername, forKey: "contact_username")
+        contact.setValue(contactID, forKey: "contact_id")
+        do {
+            try managedContext.save()
+        } catch let error as NSError  {
+            print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
 
     // MARK: - Table view data source
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 1
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
         return 0
     }
-
+    
     @IBAction func quit(sender: AnyObject) {
-        self.dismissViewControllerAnimated(true, completion: nil)
+        // since this view is in the chain of the navigation controler, use POPVIEWCONTROLLER
+        self.navigationController?.popViewControllerAnimated(true)
     }
-    /*
+
+    
+    
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("reuseIdentifier", forIndexPath: indexPath)
 
@@ -62,7 +105,7 @@ class MainTableViewController: UITableViewController {
 
         return cell
     }
-    */
+    
 
     /*
     // Override to support conditional editing of the table view.

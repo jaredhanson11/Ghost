@@ -45,7 +45,6 @@
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	<!--TEMPORARILY ALLOWING HTTP REQUESTS TO ANY ENDPOINT TO TEST LOCALLY BECAUSE HAVING ISSUE GENERATING A SELF-ASSIGNED SSL CERTIFICATE FOR LOCALHOST-->
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>

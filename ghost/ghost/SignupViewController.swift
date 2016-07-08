@@ -21,6 +21,7 @@ class SignupViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "Signup"
     }
     
     override func didReceiveMemoryWarning() {
@@ -47,12 +48,10 @@ class SignupViewController: UIViewController {
         
         if (!validator.isAlphaNumeric(usernameText) || !validator.isInRange(usernameText, lo: uLo, hi: uHi)) {
             message += "Please be sure your username is alphanumeric and within 5 and 20 characters.\n"
-            print(message)
         }
         
         if (!validator.isAlphaNumeric(passwordText) || !validator.isInRange(passwordText, lo: pLo, hi: pHi)) {
             message += "Please be sure your password is alphanumeric and within 8 and 20 characters.\n"
-            print(message)
         }
         
         if (message.characters.count > 0) {
@@ -74,7 +73,7 @@ class SignupViewController: UIViewController {
                     let userID = (data["user_id"]?.stringValue)!
                     self.delegate!.grabUserID(userID)
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.dismissViewControllerAnimated(true, completion: nil)
+                        self.navigationController?.popViewControllerAnimated(true)
                     }
                 } else {
                     let error = data["error"] as! String
