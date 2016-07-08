@@ -23,18 +23,20 @@ class signup(Resource):
         cursor = database.cursor()
 
         select_sql = \
-        '''
-        SELECT user_id FROM users WHERE username=%s
-        '''
+                '''
+                SELECT user_id FROM users WHERE username=%s
+                '''
+        insert_sql = \
+                '''
+                INSERT INTO users (username, password) VALUES (%s,%s)
+                    RETURNING user_id
+                '''
+
         cursor.execute(select_sql, (username,))
         query = cursor.fetchall()
 
         if not query:
-            insert_sql = \
-            '''
-            INSERT INTO users (username, password) VALUES (%s,%s)
-            RETURNING user_id
-            '''
+
             cursor.execute(insert_sql, (username, password))
             user_id = cursor.fetchone()[0]
             database.commit()
@@ -60,9 +62,9 @@ class login(Resource):
         cursor = database.cursor()
 
         select_sql = \
-        '''
-        SELECT user_id FROM users WHERE username=%s and password=%s
-        '''
+                '''
+                SELECT user_id FROM users WHERE username=%s and password=%s
+                '''
 
         cursor.execute(select_sql, (username, password))
         query = cursor.fetchone()
@@ -85,16 +87,16 @@ class contact(Resource):
         cursor = database.cursor()
 
         select_sql = \
-        '''
-        SELECT contact_id FROM contacts WHERE user_id=%s
-        '''
+                '''
+                SELECT contact_id FROM contacts WHERE user_id=%s
+                '''
+        get_username_sql = \
+                '''
+                SELECT username FROM users WHERE user_id=%s
+                '''
+
         cursor.execute(select_sql, (user_id,))
         query = cursor.fetchall()
-
-        get_username_sql = \
-        '''
-        SELECT username FROM users WHERE user_id=%s
-        '''
 
         contacts = {}
         for db_row in query:
@@ -119,23 +121,23 @@ class contact(Resource):
         cursor = database.cursor()
 
         select_sql = \
-        '''
-        SELECT user_id FROM users WHERE username=%s
-        '''
+                '''
+                SELECT user_id FROM users WHERE username=%s
+                '''
 
         add_contact_sql = \
-        '''
-        INSERT INTO contacts (user_id, contact_id) VALUES (%s, %s)
-        '''
+                '''
+                INSERT INTO contacts (user_id, contact_id) VALUES (%s, %s)
+                '''
 
         cursor.execute(select_sql, (contact_username,))
         query = cursor.fetchone()
 
         # check if contact is already established
         check_contact_list = \
-        '''     
-        SELECT * FROM contacts WHERE user_id=%s and contact_id=%s
-        '''
+                '''
+                SELECT * FROM contacts WHERE user_id=%s and contact_id=%s
+                '''
 
         if not query:
             data = {'error': 'The username does not exist'}
@@ -147,6 +149,7 @@ class contact(Resource):
             query = cursor.fetchone()
             if not query:
                 cursor.execute(add_contact_sql, (user_id, contact_id))
+                cursor.execute(add_contact_sql, (contact_id, user_id))
                 database.commit()
                 data = {contact_id: contact_username}
                 print {'success': 1, 'data': data}
@@ -164,25 +167,25 @@ class convo(Resource):
         cursor = database.cursor()
 
         select_sql = \
-        '''
-        SELECT convo_id FROM users_convos WHERE user_id=%s
-        '''
+                '''
+                SELECT convo_id FROM users_convos WHERE user_id=%s
+                '''
 
         cursor.execute(select_sql, (user_id,))
         query = cursor.fetchall()
 
         convo_name_sql = \
-        '''
-        SELECT convo_name FROM convos WHERE convo_id=%s
-        '''
+                '''
+                SELECT convo_name FROM convos WHERE convo_id=%s
+                '''
         convo_members_sql = \
-        '''
-        SELECT user_id FROM users_convos WHERE convo_id=%s
-        '''
+                '''
+                SELECT user_id FROM users_convos WHERE convo_id=%s
+                '''
         get_username_sql = \
-        '''
-        SELECT username FROM users WHERE user_id=%s
-        '''
+                '''
+                SELECT username FROM users WHERE user_id=%s
+                '''
 
         convos = {}
         for convo_id in query:
@@ -201,24 +204,24 @@ class convo(Resource):
         return {'success': 1, 'data': data}
 
 
-def message(Resource):
+class message(Resource):
     def get(self, user_id):
 
         database = _get_db()
         cursor = database.cursor()
 
-        get_message_ids = \
-        '''
-        SELECT message_id FROM users_messages WHERE user_id=%s
-        '''
+        get_messages_sql = \
+                '''
+                SELECT message_id FROM users_messages WHERE user_id=%s
+                '''
         cursor.execute(get_messages_sql, (user_id,))
         query = cursor.fetchall()
 
         get_message_sql = \
-        '''
-        SELECT (convo_id, user_id, message) FROM messages WHERE message_id=%s
-        '''
-
+                '''
+                SELECT convo_id,user_id,message FROM messages WHERE message_id=%s
+                '''
+        # messages = { convo_id : [ convo_objs ... ]
         messages = {}
         for message_id in query:
             cursor.execute(get_message_sql, (message_id,))
@@ -229,7 +232,8 @@ def message(Resource):
                            'message_id': message_id,
                            'user_id': user_id}
             messages[convo_id].append(message_obj)
-            data = {'messages': messages}
+        data = {'messages': messages}
+        print {'succsee': 1, 'data': data}
         return {'success': 1, 'data': data}
 
 
@@ -239,40 +243,81 @@ def message(Resource):
         request_parser.add_argument('convo_id', type=str, location='json')
         request_parser.add_argument('message', type=str, location='json')
         request_parser.add_argument('recipients', type=list, location='json')
+        request_parser.add_argument('convo_name', type=str, location='json')
         request_args = request_parser.parse_args()
-        convo_id = request_args['convo_id']
         message = request_args['message']
+        ## Existing thread
+        convo_id = request_args['convo_id']
+        ## New conversation
         recipients = request_args['recipients']
+        convo_name = request_args['convo_name']
 
         database = _get_db()
         cursor = database.cursor()
 
-        post_message_sql = \
-        '''
-        INSERT INTO messages (user_id, convo_id, message)
-        VALUES (%s, %s, %s)
-        RETURNING message_id
-        '''
+        # Recipients in request when creating a new conversation.
+        if recipients:
+            create_convo_sql = \
+                    '''
+                    INSERT INTO convos (convo_name) VALUES (%s)
+                        RETURNING convo_id
+                    '''
+            cursor.execute(create_convo_sql, (convo_name,))
+            convo_id = cursor.fetchone()[0]
 
-        get_convo_members = \
-        '''
-        SELECT user_id FROM users_convos WHERE convo_id=%s
-        '''
+            user_convo_sql = \
+                    '''
+                    INSERT INTO users_convos (convo_id, user_id)
+                        VALUES (%s, %s)
+                    '''
+
+            for recipient_id in recipients:
+                cursor.execute(user_convo_sql, (convo_id, recipient_id))
+            database.commit()
+
+        post_message_sql = \
+                '''
+                INSERT INTO messages (user_id, convo_id, message)
+                    VALUES (%s, %s, %s)
+                    RETURNING message_id
+                '''
 
         cursor.execute(post_message_sql, (user_id, convo_id, message))
         message_id = cursor.fetchone()[0]
         database.commit()
+
+        get_convo_members = \
+                '''
+                SELECT user_id FROM users_convos WHERE convo_id=%s
+                '''
+        insert_inbox_sql = \
+                '''
+                INSERT INTO users_messages (message_id, user_id)
+                    VALUES (%s, %s)
+                '''
+
+        cursor.execute(get_convo_members, (convo_id,))
+        query = cursor.fetchall()
+
+        for recipient_id in query:
+            cursor.execute(insert_inbox_sql, (message_id, recipient_id))
+        database.commit()
+
+        data = {'convo_id': convo_id}
+        print {'success': 1, 'data': data}
+        return {'success': 1, 'data': data}
+
 
 class user(Resource):
     def get(self, user_id):
 
         database = _get_db()
         cursor = database.cursor()
-	
+
         get_user_info_sql = \
-        '''
-        SELECT * FROM users WHERE user_id=%s
-        '''
+                '''
+                SELECT * FROM users WHERE user_id=%s
+                '''
         cursor.execute(get_user_info_sql, (user_id,))
         # user_id, username, password
         query = cursor.fetchone()
@@ -285,7 +330,7 @@ class user(Resource):
             data = {user_id : {'username' : query[1]}}
             print {'success' : 1, 'data' : data}
             return {'success' : 1, 'data' : data}
-	
+
 class user_all(Resource):
     def get(self):
 
@@ -293,9 +338,9 @@ class user_all(Resource):
         cursor = database.cursor()
 
         get_user_all_info_sql = \
-        '''
-        SELECT user_id, username FROM users
-        '''
+                '''
+                SELECT user_id, username FROM users
+                '''
         cursor.execute(get_user_all_info_sql)
         # user_id, username, password
         query = cursor.fetchall()
@@ -326,9 +371,10 @@ api.add_resource(signup, '/signup/')
 api.add_resource(login, '/login/')
 api.add_resource(contact, '/<int:user_id>/contact/')
 api.add_resource(convo, '/<int:user_id>/convo/')
+api.add_resource(message, '/<int:user_id>/message/')
 api.add_resource(user, '/<int:user_id>/user/')
 api.add_resource(user_all, '/user/')
 
 if __name__ == "__main__":
-	app.run(debug=True, host="127.0.0.1")
+    app.run(debug=True, host="127.0.0.1")
 
