@@ -72,8 +72,15 @@ class SignupViewController: UIViewController {
                 if success == 1 {
                     let userID = (data["user_id"]?.stringValue)!
                     self.delegate!.grabUserID(userID)
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.navigationController?.popViewControllerAnimated(true)
+                    NSOperationQueue.mainQueue().addOperationWithBlock {
+                        let username = data["username"] as! String
+                        let message: String = "Successful signup with \(username)!"
+                        let signupSuccessAlert = UIAlertController(title: "Signup Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
+                        let signupSuccessAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                        signupSuccessAlert.addAction(signupSuccessAction)
+                        self.presentViewController(signupSuccessAlert, animated: true, completion: nil)
+                        // ADD with a race condition, literally need to delay this a split sec
+                        // self.navigationController?.popViewControllerAnimated(true)
                     }
                 } else {
                     let error = data["error"] as! String
@@ -81,7 +88,7 @@ class SignupViewController: UIViewController {
                     let signupIssue = UIAlertController(title: "Signup Issue", message: error, preferredStyle: UIAlertControllerStyle.Alert)
                     let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
                     signupIssue.addAction(action)
-                    dispatch_async(dispatch_get_main_queue()) {
+                    NSOperationQueue.mainQueue().addOperationWithBlock {
                         self.presentViewController(signupIssue, animated: true, completion: nil)
                     }
                 }

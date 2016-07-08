@@ -53,12 +53,10 @@ class ContactsTableViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    func doTableRefresh()
-    {
-        dispatch_async(dispatch_get_main_queue(), {
+    func doTableRefresh() {
+        NSOperationQueue.mainQueue().addOperationWithBlock {
             self.tableView.reloadData()
-            return
-        })
+        }
     }
     
     // a function for quitting on the contacts page, if we implement a quit button
@@ -107,7 +105,7 @@ class ContactsTableViewController: UITableViewController {
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
                         let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
                         contactAddSuccess.addAction(action)
-                        dispatch_async(dispatch_get_main_queue()) {
+                        NSOperationQueue.mainQueue().addOperationWithBlock {
                             self.presentViewController(contactAddSuccess, animated: true, completion: { () -> Void in
                                 self.tableView.reloadData()
                             })
@@ -118,7 +116,7 @@ class ContactsTableViewController: UITableViewController {
                         let contactAddIssue = UIAlertController(title: "Add Contact Issue", message: error, preferredStyle: UIAlertControllerStyle.Alert)
                         let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
                         contactAddIssue.addAction(action)
-                        dispatch_async(dispatch_get_main_queue()) {
+                        NSOperationQueue.mainQueue().addOperationWithBlock {
                             self.presentViewController(contactAddIssue, animated: true, completion: nil)
                         }
                     }

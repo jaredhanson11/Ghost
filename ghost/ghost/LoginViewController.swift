@@ -82,7 +82,20 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
                     let userID = (data["user_id"]?.stringValue)!
                     NSOperationQueue.mainQueue().addOperationWithBlock { // must call this on main thread because the callback from http post is running
                         self.userID = userID
+                        self.username.text = ""
+                        self.password.text = ""
                         self.performSegueWithIdentifier("to-main", sender: self)
+                    }
+                } else {
+                    let error = data["error"] as! String
+                    let loginAlert = UIAlertController(title: "Login Issue", message: error, preferredStyle: UIAlertControllerStyle.Alert)
+                    let loginAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                    loginAlert.addAction(loginAction)
+                    NSOperationQueue.mainQueue().addOperationWithBlock {
+                        self.presentViewController(loginAlert, animated: true, completion: { () -> Void in
+                            self.username.text = ""
+                            self.password.text = ""
+                        })
                     }
                 }
             })
