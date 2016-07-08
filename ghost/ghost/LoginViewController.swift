@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class LoginViewController: UIViewController, SignupControllerDelegate {
         
@@ -17,6 +18,8 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "Login"
+        deleteAllData("Contact")
         // let signup = UIAlertController(title: "Congratulations", message: "Successful signup!", preferredStyle: UIAlertControllerStyle.Alert)
         // let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
         // signup.addAction(action)
@@ -55,12 +58,10 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
         
         if (!validator.isAlphaNumeric(usernameText) || !validator.isInRange(usernameText, lo: uLo, hi: uHi)) {
             message += "Please be sure your username is alphanumeric and within 5 and 20 characters.\n"
-            print(message)
         }
         
         if (!validator.isAlphaNumeric(passwordText) || !validator.isInRange(passwordText, lo: pLo, hi: pHi)) {
             message += "Please be sure your password is alphanumeric and within 8 and 20 characters.\n"
-            print(message)
         }
         
         if (message.characters.count > 0) {
@@ -90,8 +91,7 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "to-main" {
-            let nav = segue.destinationViewController as! UINavigationController
-            let destination = nav.topViewController as! MainTableViewController
+            let destination = segue.destinationViewController as! MainTableViewController
             destination.userID = self.userID
         }
         if segue.identifier == "to-signup" {
@@ -102,5 +102,25 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
     
     func grabUserID(id: String) {
         self.userID = id
+    }
+    
+    // CLEAR CACHE
+    func deleteAllData(entity: String)
+    {
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        let fetchRequest = NSFetchRequest(entityName: entity)
+        fetchRequest.returnsObjectsAsFaults = false
+        do
+        {
+            let results = try managedContext.executeFetchRequest(fetchRequest)
+            for managedObject in results
+            {
+                let managedObjectData:NSManagedObject = managedObject as! NSManagedObject
+                managedContext.deleteObject(managedObjectData)
+            }
+        } catch let error as NSError {
+            print("Detele all data in \(entity) error : \(error) \(error.userInfo)")
+        }
     }
 }

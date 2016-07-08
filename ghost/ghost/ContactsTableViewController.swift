@@ -12,7 +12,6 @@ import CoreData
 class ContactsTableViewController: UITableViewController {
     
     var userID: String = ""
-    var contacts: Array<String> = Array <String>()
     
     // Core Data persistence array
     var contactsCache = [NSManagedObject]()
@@ -20,27 +19,23 @@ class ContactsTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
+        print(contactsCache.count)
         
-        // load all the contacts into an array
-        let resource: String = userID + "/" + "contact"
-        let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
-        http.GET({ (json) -> Void in
-            print("YEAH BOI")
-            let success = json["success"] as! Int
-            if success == 1 {
-                let data = json["data"] as! [String:AnyObject]
-                let contactsDict = data["contacts"] as! [String:String]
-                let contactsList = contactsDict.values
-                for contact in contactsList {
-                    self.contacts.append(contact)
-                }
-                self.doTableRefresh()
-            } else {
-                // let data = json["data"] as! [String:AnyObject]
-                // let error = data["error"] as! String
-            }
-        })
-        print(self.contacts)
+        // LOGIC: check if there's data stored in cache
+        // if so, that means the app was loaded and all the data is in the cache
+        // if not, perform HTTP request
+        // UNLOAD CONTACTS FROM CACHE
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        let fetchRequest = NSFetchRequest(entityName: "Contact")
+        do {
+            let results = try managedContext.executeFetchRequest(fetchRequest)
+            contactsCache = results as! [NSManagedObject]
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
+        
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
         
@@ -51,19 +46,6 @@ class ContactsTableViewController: UITableViewController {
     override func viewWillAppear(animated: Bool) {
         print("Contacts Table View Controller: " + userID)
         super.viewWillAppear(animated)
-        
-        // THIS IS THE CACHE FETCH CODE, FIND USE CASE FOR CACHING
-//        let appDelegate =
-//            UIApplication.sharedApplication().delegate as! AppDelegate
-//        let managedContext = appDelegate.managedObjectContext
-//        let fetchRequest = NSFetchRequest(entityName: "Person")
-//        do {
-//            let results =
-//                try managedContext.executeFetchRequest(fetchRequest)
-//            people = results as! [NSManagedObject]
-//        } catch let error as NSError {
-//            print("Could not fetch \(error), \(error.userInfo)")
-//        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -102,14 +84,13 @@ class ContactsTableViewController: UITableViewController {
             
             if (!validator.isAlphaNumeric(username) || !validator.isInRange(username, lo: uLo, hi: uHi)) {
                 message += "Please be sure the username is alphanumeric and within 5 and 20 characters.\n"
-                print(message)
             }
             
             if (message.characters.count > 0) {
-                let signupIssue = UIAlertController(title: "Signup Issue", message: message, preferredStyle: UIAlertControllerStyle.Alert)
+                let addContactIssue = UIAlertController(title: "Add Contact Issue", message: message, preferredStyle: UIAlertControllerStyle.Alert)
                 let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
-                signupIssue.addAction(action)
-                self.presentViewController(signupIssue, animated: true, completion: nil)
+                addContactIssue.addAction(action)
+                self.presentViewController(addContactIssue, animated: true, completion: nil)
             } else {
                 // SAVE TO SERVER
                 let resource: String = self.userID + "/contact"
@@ -119,11 +100,9 @@ class ContactsTableViewController: UITableViewController {
                     let data = json["data"] as! [String:AnyObject]
                     if success == 1 {
                         // SAVE TO CACHE
-                        //{'data': {5: 'thomasc'}, 'success': 1}
-                        //let contact_id = Array(data.keys)[0]
-                        //self.saveContact(username, contactID: contact_id)
+                        let contact_id = Int(Array(data.keys)[0])!
+                        self.saveContact(username, contactID: contact_id)
                         
-                        self.contacts.append(username)
                         let message: String = "You successfully added " + username + "!"
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
                         let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
@@ -181,15 +160,14 @@ class ContactsTableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return self.contacts.count
+        return self.contactsCache.count
     }
     
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        print(self.contacts)
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        cell.textLabel?.text = self.contacts[indexPath.item]
+        cell.textLabel?.text = self.contactsCache[indexPath.item].valueForKey("contact_username") as? String
         return cell
     }
     
