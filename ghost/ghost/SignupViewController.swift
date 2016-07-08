@@ -73,7 +73,7 @@ class SignupViewController: UIViewController {
                     let userID = (data["user_id"]?.stringValue)!
                     self.delegate!.grabUserID(userID)
                     dispatch_async(dispatch_get_main_queue()) {
-                        self.dismissViewControllerAnimated(true, completion: nil)
+                        self.navigationController?.popViewControllerAnimated(true)
                     }
                 } else {
                     let error = data["error"] as! String
