@@ -1,7 +1,0 @@
-signup --> post req
-	success = 1, user_id, username
-login --> 
-	success =1, user_id, username
-
-send a message
-if convo id is there, it's a current convo of course
