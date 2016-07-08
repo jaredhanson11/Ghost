@@ -149,6 +149,7 @@ class contact(Resource):
             query = cursor.fetchone()
             if not query:
                 cursor.execute(add_contact_sql, (user_id, contact_id))
+                cursor.execute(add_contact_sql, (contact_id, user_id))
                 database.commit()
                 data = {contact_id: contact_username}
                 print {'success': 1, 'data': data}
@@ -166,9 +167,9 @@ class convo(Resource):
         cursor = database.cursor()
 
         select_sql = \
-            '''
-            SELECT convo_id FROM users_convos WHERE user_id=%s
-            '''
+                '''
+                SELECT convo_id FROM users_convos WHERE user_id=%s
+                '''
 
         cursor.execute(select_sql, (user_id,))
         query = cursor.fetchall()
@@ -210,17 +211,17 @@ def message(Resource):
         cursor = database.cursor()
 
         get_message_ids = \
-            '''
-            SELECT message_id FROM users_messages WHERE user_id=%s
-            '''
+                '''
+                SELECT message_id FROM users_messages WHERE user_id=%s
+                '''
         cursor.execute(get_messages_sql, (user_id,))
         query = cursor.fetchall()
 
         get_message_sql = \
-            '''
-            SELECT (convo_id, user_id, message) FROM messages WHERE message_id=%s
-            '''
-
+                '''
+                SELECT (convo_id, user_id, message) FROM messages WHERE message_id=%s
+                '''
+        # messages = { convo_id : [ convo_objs ... ]
         messages = {}
         for message_id in query:
             cursor.execute(get_message_sql, (message_id,))
@@ -243,8 +244,10 @@ def message(Resource):
         request_parser.add_argument('recipients', type=list, location='json')
         request_parser.add_argument('convo_name', type=str, location='json')
         request_args = request_parser.parse_args()
-        convo_id = request_args['convo_id']
         message = request_args['message']
+        ## Existing thread
+        convo_id = request_args['convo_id']
+        ## New conversation
         recipients = request_args['recipients']
         convo_name = request_args['convo_name']
 
