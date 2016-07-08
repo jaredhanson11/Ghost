@@ -204,13 +204,13 @@ class convo(Resource):
         return {'success': 1, 'data': data}
 
 
-def message(Resource):
+class message(Resource):
     def get(self, user_id):
 
         database = _get_db()
         cursor = database.cursor()
 
-        get_message_ids = \
+        get_messages_sql = \
                 '''
                 SELECT message_id FROM users_messages WHERE user_id=%s
                 '''
@@ -219,7 +219,7 @@ def message(Resource):
 
         get_message_sql = \
                 '''
-                SELECT (convo_id, user_id, message) FROM messages WHERE message_id=%s
+                SELECT convo_id,user_id,message FROM messages WHERE message_id=%s
                 '''
         # messages = { convo_id : [ convo_objs ... ]
         messages = {}
@@ -232,7 +232,8 @@ def message(Resource):
                            'message_id': message_id,
                            'user_id': user_id}
             messages[convo_id].append(message_obj)
-            data = {'messages': messages}
+        data = {'messages': messages}
+        print {'succsee': 1, 'data': data}
         return {'success': 1, 'data': data}
 
 
@@ -303,6 +304,7 @@ def message(Resource):
         database.commit()
 
         data = {'convo_id': convo_id}
+        print {'success': 1, 'data': data}
         return {'success': 1, 'data': data}
 
 
@@ -369,6 +371,7 @@ api.add_resource(signup, '/signup/')
 api.add_resource(login, '/login/')
 api.add_resource(contact, '/<int:user_id>/contact/')
 api.add_resource(convo, '/<int:user_id>/convo/')
+api.add_resource(message, '/<int:user_id>/message/')
 api.add_resource(user, '/<int:user_id>/user/')
 api.add_resource(user_all, '/user/')
 
