@@ -10,6 +10,16 @@ api = Api(app)
 
 class signup(Resource):
     def post(self):
+        '''
+        POST /signup/
+        BODY:
+            {'username': <username>,
+             'password': <password>}
+
+        RESPONSE 'data':
+            {'user_id': <user_id>,
+             'username': <username>}
+        '''
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -50,6 +60,16 @@ class signup(Resource):
 
 class login(Resource):
     def post(self):
+        '''
+        POST /login/
+        BODY:
+            {'username': <username>,
+             'password': <password>}
+
+        RESPONSE 'data':
+            {'user_id': <user_id>,
+             'username': <username>}
+        '''
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -82,6 +102,16 @@ class login(Resource):
 
 class contact(Resource):
     def get(self, user_id):
+        '''
+        GET /<user_id>/contact/
+
+        RESPONSE 'data':
+            {'contacts':
+                {<contact_id>: <contact_username>,
+                 ...
+                }
+            }
+        '''
 
         database = _get_db()
         cursor = database.cursor()
@@ -111,6 +141,15 @@ class contact(Resource):
         return {'success': 1, 'data': data}
 
     def post(self, user_id):
+        '''
+        POST /<user_id>/convo/
+        BODY:
+            {'username': <contact_username>}
+
+        RESPONSE 'data':
+            {<contact_user_id>: <contact_username>}
+        '''
+
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -162,6 +201,19 @@ class contact(Resource):
 
 class convo(Resource):
     def get(self, user_id):
+        '''
+        GET /<user_id>/convo/
+
+        RESPONSE 'data':
+            {'convos':
+                {<convo_id>:
+                    {'convo_name': <convo_name>,
+                     'members': '<member_id>,<member_id>,...'
+                    }, ...
+                ...
+                }
+            }
+        '''
 
         database = _get_db()
         cursor = database.cursor()
@@ -182,10 +234,6 @@ class convo(Resource):
                 '''
                 SELECT user_id FROM users_convos WHERE convo_id=%s
                 '''
-        get_username_sql = \
-                '''
-                SELECT username FROM users WHERE user_id=%s
-                '''
 
         convos = {}
         for convo_id in query:
@@ -193,11 +241,9 @@ class convo(Resource):
             convo_name = cursor.fetchone()[0]
             convo = {'convo_name': convo_name}
             cursor.execute(convo_members_sql, (convo_id,))
-            members = cursor.fetchall()
-            for member_id in members:
-                cursor.execute(get_username_sql, (member_id,))
-                member_name = cursor.fetchone()[0]
-                convo.update({member_id: member_name})
+            members_list = cursor.fetchall()
+            members_csv = ','.join(str(uid[0] for uid in members_list))
+            convo.update({'members': members_csv})
             convos.update({convo_id: convo})
 
         data = {'convos': convos}
@@ -238,11 +284,27 @@ class message(Resource):
 
 
     def post(self, user_id):
+        '''
+        POST /<user_id>/message/
+
+        If replying to thread:
+            BODY:
+                {'convo_id': <convo_id>,
+                 'message': <message>}
+        If starting new thread:
+            BODY:
+                {'recipients': '<recipient_id>,<recipient_id>,...>',
+                 'convo_name': <convo_name> or '',
+                 'message': <message>}
+
+        RESPONSE 'data':
+            {'convo_id': <convo_id>}
+        '''
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('convo_id', type=str, location='json')
         request_parser.add_argument('message', type=str, location='json')
-        request_parser.add_argument('recipients', type=list, location='json')
+        request_parser.add_argument('recipients', type=str, location='json')
         request_parser.add_argument('convo_name', type=str, location='json')
         request_args = request_parser.parse_args()
         message = request_args['message']
@@ -270,9 +332,10 @@ class message(Resource):
                     INSERT INTO users_convos (convo_id, user_id)
                         VALUES (%s, %s)
                     '''
-
-            for recipient_id in recipients:
+            recipients_list = recipients.split(',')
+            for recipient_id in recipients_list:
                 cursor.execute(user_convo_sql, (convo_id, recipient_id))
+            cursor.execute(user_convo_sql, (convo_id, user_id))
             database.commit()
 
         post_message_sql = \
@@ -300,6 +363,8 @@ class message(Resource):
         query = cursor.fetchall()
 
         for recipient_id in query:
+            if int(recipient_id) == int(user_id):
+                continue
             cursor.execute(insert_inbox_sql, (message_id, recipient_id))
         database.commit()
 
