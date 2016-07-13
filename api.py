@@ -10,6 +10,15 @@ api = Api(app)
 
 class signup(Resource):
     def post(self):
+        '''
+        POST /signup/
+        BODY:
+            {'username': <username>,
+             'password': <password>}
+        RESPONSE 'data':
+            {'user_id': <user_id>,
+             'username': <username>}
+        '''
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -50,6 +59,15 @@ class signup(Resource):
 
 class login(Resource):
     def post(self):
+        '''
+        POST /login/
+        BODY:
+            {'username': <username>,
+             'password': <password>}
+        RESPONSE 'data':
+            {'user_id': <user_id>,
+             'username': <username>}
+        '''
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -82,6 +100,15 @@ class login(Resource):
 
 class contact(Resource):
     def get(self, user_id):
+        '''
+        GET /<user_id>/contact/
+        RESPONSE 'data':
+            {'contacts':
+                {<contact_id>: <contact_username>,
+                 ...
+                }
+            }
+        '''
 
         database = _get_db()
         cursor = database.cursor()
@@ -111,6 +138,14 @@ class contact(Resource):
         return {'success': 1, 'data': data}
 
     def post(self, user_id):
+        '''
+        POST /<user_id>/convo/
+        BODY:
+            {'username': <contact_username>}
+        RESPONSE 'data':
+            {<contact_user_id>: <contact_username>}
+        '''
+
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -162,6 +197,18 @@ class contact(Resource):
 
 class convo(Resource):
     def get(self, user_id):
+        '''
+        GET /<user_id>/convo/
+        RESPONSE 'data':
+            {'convos':
+                {<convo_id>:
+                    {'convo_name': <convo_name>,
+                     'members': '<member_id>,<member_id>,...'
+                    }, ...
+                ...
+                }
+            }
+        '''
 
         database = _get_db()
         cursor = database.cursor()
@@ -170,37 +217,33 @@ class convo(Resource):
                 '''
                 SELECT convo_id FROM users_convos WHERE user_id=%s
                 '''
-
+        # selecting conversations for one user
         cursor.execute(select_sql, (user_id,))
         query = cursor.fetchall()
-
         convo_name_sql = \
                 '''
                 SELECT convo_name FROM convos WHERE convo_id=%s
                 '''
+        # for the same user and a convo_id, return the convo name
         convo_members_sql = \
                 '''
                 SELECT user_id FROM users_convos WHERE convo_id=%s
                 '''
-        get_username_sql = \
-                '''
-                SELECT username FROM users WHERE user_id=%s
-                '''
-
+        # for a convo id, which the same user is a member of, select all the user_id associated with it
         convos = {}
         for convo_id in query:
-            cursor.execute(convo_name_sql, (convo_id,))
+            cursor.execute(convo_name_sql, (convo_id[0],))
             convo_name = cursor.fetchone()[0]
             convo = {'convo_name': convo_name}
-            cursor.execute(convo_members_sql, (convo_id,))
-            members = cursor.fetchall()
-            for member_id in members:
-                cursor.execute(get_username_sql, (member_id,))
-                member_name = cursor.fetchone()[0]
-                convo.update({member_id: member_name})
-            convos.update({convo_id: convo})
+            cursor.execute(convo_members_sql, (convo_id[0],))
+            members_list = cursor.fetchall()
+            print(members_list)
+            members_csv = ','.join([str(uid[0]) for uid in members_list])
+            convo.update({'members': members_csv})
+            convos.update({int(convo_id[0]): convo})
 
         data = {'convos': convos}
+        print({'success': 1, 'data': data})
         return {'success': 1, 'data': data}
 
 
@@ -233,16 +276,30 @@ class message(Resource):
                            'user_id': user_id}
             messages[convo_id].append(message_obj)
         data = {'messages': messages}
-        print {'succsee': 1, 'data': data}
+        print {'success': 1, 'data': data}
         return {'success': 1, 'data': data}
 
 
     def post(self, user_id):
+        '''
+        POST /<user_id>/message/
+        If replying to thread:
+            BODY:
+                {'convo_id': <convo_id>,
+                 'message': <message>}
+        If starting new thread:
+            BODY:
+                {'recipients': '<recipient_id>,<recipient_id>,...>',
+                 'convo_name': <convo_name> or '',
+                 'message': <message>}
+        RESPONSE 'data':
+            {'convo_id': <convo_id>}
+        '''
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('convo_id', type=str, location='json')
         request_parser.add_argument('message', type=str, location='json')
-        request_parser.add_argument('recipients', type=list, location='json')
+        request_parser.add_argument('recipients', type=str, location='json')
         request_parser.add_argument('convo_name', type=str, location='json')
         request_args = request_parser.parse_args()
         message = request_args['message']
@@ -270,9 +327,18 @@ class message(Resource):
                     INSERT INTO users_convos (convo_id, user_id)
                         VALUES (%s, %s)
                     '''
-
-            for recipient_id in recipients:
+            recipients_list = [recipient.strip() for recipient in recipients.split(',')]
+            print(recipients_list)
+            # getting the recipient id as it does not rest in the code until it's cached
+            for recipient in recipients_list:
+                get_recipient_id_sql = \
+                        '''
+                        SELECT user_id from users WHERE username=%s
+                        '''
+                cursor.execute(get_recipient_id_sql, (recipient,))
+                recipient_id = cursor.fetchone()[0]
                 cursor.execute(user_convo_sql, (convo_id, recipient_id))
+            cursor.execute(user_convo_sql, (convo_id, user_id))
             database.commit()
 
         post_message_sql = \
@@ -300,6 +366,8 @@ class message(Resource):
         query = cursor.fetchall()
 
         for recipient_id in query:
+            if int(recipient_id[0]) == int(user_id):
+                continue
             cursor.execute(insert_inbox_sql, (message_id, recipient_id))
         database.commit()
 

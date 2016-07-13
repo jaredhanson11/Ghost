@@ -4,7 +4,24 @@
         <attribute name="contact_id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="contact_username" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
+    <entity name="Conversation" syncable="YES">
+        <attribute name="convo_id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="convo_name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="recipients" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="Messages" syncable="YES">
+        <attribute name="convo_id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="message" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+    </entity>
+    <entity name="Users_Conversations" syncable="YES">
+        <attribute name="convo_id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+    </entity>
     <elements>
         <element name="Contact" positionX="-63" positionY="-18" width="128" height="75"/>
+        <element name="Conversation" positionX="-63" positionY="0" width="128" height="90"/>
+        <element name="Messages" positionX="-36" positionY="36" width="128" height="90"/>
+        <element name="Users_Conversations" positionX="-18" positionY="63" width="128" height="75"/>
     </elements>
 </model>
