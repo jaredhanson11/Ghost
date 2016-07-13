@@ -10,10 +10,6 @@ import Foundation
 
 class Validation {
     
-    init() {
-        
-    }
-    
     // Range Check
     func isInRange(text: String, lo: Int, hi: Int) -> Bool {
         let textLength = text.characters.count

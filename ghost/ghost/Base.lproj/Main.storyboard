@@ -4,6 +4,7 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
         <!--Contacts Table View Controller-->
@@ -39,7 +40,47 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tAD-2U-XCd" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2607" y="79"/>
+            <point key="canvasLocation" x="2623" y="431"/>
+        </scene>
+        <!--Conversation Table View Controller-->
+        <scene sceneID="dUV-x7-dMN">
+            <objects>
+                <tableViewController id="06x-HA-F6P" customClass="ConversationTableViewController" customModule="ghost" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="2P5-Lo-9Kn">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="message" id="UQ6-fh-XAB">
+                                <rect key="frame" x="0.0" y="92" width="600" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="UQ6-fh-XAB" id="BPJ-xl-wU7">
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="06x-HA-F6P" id="khW-ar-2vr"/>
+                            <outlet property="delegate" destination="06x-HA-F6P" id="4GS-4x-9dD"/>
+                        </connections>
+                    </tableView>
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" id="Bsz-9o-8zl">
+                        <rightBarButtonItems>
+                            <barButtonItem title="Send Message" id="hEz-ek-Tqc">
+                                <connections>
+                                    <action selector="sendMessage:" destination="06x-HA-F6P" id="dfK-Rx-HBB"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem id="8GN-dw-qRL"/>
+                        </rightBarButtonItems>
+                    </navigationItem>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="mDa-bU-Sfs" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2623" y="-352"/>
         </scene>
         <!--Main Table View Controller-->
         <scene sceneID="pfa-zd-d1x">
@@ -50,7 +91,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="9eJ-bo-ZqW">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="convo" id="9eJ-bo-ZqW">
                                 <rect key="frame" x="0.0" y="92" width="600" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="9eJ-bo-ZqW" id="Xoh-1S-zVE">
@@ -65,17 +106,30 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="wWg-mU-Hwa">
-                        <barButtonItem key="leftBarButtonItem" title="Contacts" id="OPA-pc-kgE">
-                            <connections>
-                                <segue destination="MMZ-d9-1dU" kind="show" identifier="to-contacts" id="QxU-Tw-tdm"/>
-                            </connections>
-                        </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Quit" id="SmR-CH-rQY">
-                            <connections>
-                                <action selector="quit:" destination="U9c-zn-HOT" id="9KW-oh-427"/>
-                            </connections>
-                        </barButtonItem>
+                        <leftBarButtonItems>
+                            <barButtonItem title="Contacts" id="OPA-pc-kgE">
+                                <connections>
+                                    <segue destination="MMZ-d9-1dU" kind="show" identifier="to-contacts" id="QxU-Tw-tdm"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Start Conversation" id="xx6-x3-d17">
+                                <connections>
+                                    <action selector="addConvo:" destination="U9c-zn-HOT" id="bYo-pN-oGd"/>
+                                </connections>
+                            </barButtonItem>
+                        </leftBarButtonItems>
+                        <rightBarButtonItems>
+                            <barButtonItem title="Quit" id="SmR-CH-rQY">
+                                <connections>
+                                    <action selector="quit:" destination="U9c-zn-HOT" id="9KW-oh-427"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem id="e25-Dy-elc"/>
+                        </rightBarButtonItems>
                     </navigationItem>
+                    <connections>
+                        <segue destination="06x-HA-F6P" kind="show" identifier="to-convo" id="QPI-7S-arO"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nyH-ex-Yjd" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

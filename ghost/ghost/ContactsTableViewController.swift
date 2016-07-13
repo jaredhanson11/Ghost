@@ -7,34 +7,14 @@
 //
 
 import UIKit
-import CoreData
 
 class ContactsTableViewController: UITableViewController {
     
     var userID: String = ""
     
-    // Core Data persistence array
-    var contactsCache = [NSManagedObject]()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
-        print(contactsCache.count)
-        
-        // LOGIC: check if there's data stored in cache
-        // if so, that means the app was loaded and all the data is in the cache
-        // if not, perform HTTP request
-        // UNLOAD CONTACTS FROM CACHE
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let managedContext = appDelegate.managedObjectContext
-        let fetchRequest = NSFetchRequest(entityName: "Contact")
-        do {
-            let results = try managedContext.executeFetchRequest(fetchRequest)
-            contactsCache = results as! [NSManagedObject]
-        } catch let error as NSError {
-            print("Could not fetch \(error), \(error.userInfo)")
-        }
-        
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -53,19 +33,8 @@ class ContactsTableViewController: UITableViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    func doTableRefresh() {
-        NSOperationQueue.mainQueue().addOperationWithBlock {
-            self.tableView.reloadData()
-        }
-    }
-    
-    // a function for quitting on the contacts page, if we implement a quit button
-    //    @IBAction func quit(sender: AnyObject) {
-    //        self.dismissViewControllerAnimated(false, completion: nil)
-    //        self.parentViewController?.dismissViewControllerAnimated(false, completion: nil)
-    //    }
-    
-    
+    //------------------------------START: ADD CONTACT---------------------------------------------------
+
     @IBAction func addContact(sender: AnyObject) {
         let addAlert = UIAlertController(title: "Add Contact", message: "Enter a username to add to you contacts list", preferredStyle: .Alert)
         let action = UIAlertAction(title: "Submit", style: .Default, handler: { (action:UIAlertAction) -> Void in
@@ -77,7 +46,6 @@ class ContactsTableViewController: UITableViewController {
             let uLo = 5
             let uHi = 20
             
-            // in the event of a validation failure, a UIAlertAction will present itself and clear the username and password fields
             var message = ""
             
             if (!validator.isAlphaNumeric(username) || !validator.isInRange(username, lo: uLo, hi: uHi)) {
@@ -90,16 +58,16 @@ class ContactsTableViewController: UITableViewController {
                 addContactIssue.addAction(action)
                 self.presentViewController(addContactIssue, animated: true, completion: nil)
             } else {
-                // SAVE TO SERVER
+                // SAVE TO SERVER: CONTACT
                 let resource: String = self.userID + "/contact"
                 let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["username" : username])
                 http.POST({ (json) -> Void in
                     let success = json["success"] as! Int
                     let data = json["data"] as! [String:AnyObject]
                     if success == 1 {
-                        // SAVE TO CACHE
-                        let contact_id = Int(Array(data.keys)[0])!
-                        self.saveContact(username, contactID: contact_id)
+                        // SAVE TO CACHE: CONTACT
+                        let contact_id = Array(data.keys)[0]
+                        Cache.sharedInstance.addContactToCache(contact_id, contactUsername: username)
                         
                         let message: String = "You successfully added " + username + "!"
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
@@ -107,12 +75,11 @@ class ContactsTableViewController: UITableViewController {
                         contactAddSuccess.addAction(action)
                         NSOperationQueue.mainQueue().addOperationWithBlock {
                             self.presentViewController(contactAddSuccess, animated: true, completion: { () -> Void in
-                                self.tableView.reloadData()
+                                self.doTableRefresh()
                             })
                         }
                     } else {
                         let error = data["error"] as! String
-                        // issue
                         let contactAddIssue = UIAlertController(title: "Add Contact Issue", message: error, preferredStyle: UIAlertControllerStyle.Alert)
                         let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
                         contactAddIssue.addAction(action)
@@ -131,44 +98,47 @@ class ContactsTableViewController: UITableViewController {
         self.presentViewController(addAlert, animated: true, completion: nil)
     }
     
-    func saveContact(contactUsername: String, contactID: Int) {
-        let appDelegate =
-            UIApplication.sharedApplication().delegate as! AppDelegate
-        let managedContext = appDelegate.managedObjectContext
-        let entity =  NSEntityDescription.entityForName("Contact",
-                                                        inManagedObjectContext:managedContext)
-        let contact = NSManagedObject(entity: entity!,
-                                     insertIntoManagedObjectContext: managedContext)
-        contact.setValue(contactUsername, forKey: "contact_username")
-        contact.setValue(contactID, forKey: "contact_id")
-        do {
-            try managedContext.save()
-            contactsCache.append(contact)
-        } catch let error as NSError  {
-            print("Could not save \(error), \(error.userInfo)")
+    //------------------------------END: ADD CONTACT---------------------------------------------------
+    
+    
+    //------------------------------START: MISCELLANEOUS METHODS---------------------------------------------------
+    
+    func addTextFieldToAlert(alert: UIAlertController, placeholder: String) {
+        alert.addTextFieldWithConfigurationHandler {
+            (textField: UITextField) -> Void in
+            textField.placeholder = placeholder
         }
     }
+    
+    //------------------------------END: MISCELLANEOUS METHODS---------------------------------------------------
+
+    
+    //------------------------------START: TABLE METHODS---------------------------------------------------
+    
+    func doTableRefresh() {
+        NSOperationQueue.mainQueue().addOperationWithBlock {
+            self.tableView.reloadData()
+        }
+    }
+    
+    //------------------------------END: TABLE METHODS---------------------------------------------------
     
     // MARK: - Table view data source
     
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
         return 1
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return self.contactsCache.count
+        return Cache.sharedInstance.contactsCache.count
     }
-    
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        cell.textLabel?.text = self.contactsCache[indexPath.item].valueForKey("contact_username") as? String
+        cell.textLabel?.text = Array(Cache.sharedInstance.contactsCache.values)[indexPath.item] as? String
         return cell
     }
-    
     
     /*
      // Override to support conditional editing of the table view.
