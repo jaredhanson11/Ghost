@@ -73,7 +73,6 @@ class MainTableViewController: UITableViewController {
         
         //------------------------------END: SAVE TO CACHE-----------------------------------------------------
         
-                
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
