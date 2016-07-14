@@ -4,8 +4,72 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
+        <!--Conversation Table View Controller-->
+        <scene sceneID="fTr-BF-E8c">
+            <objects>
+                <tableViewController id="oI3-IB-ZgT" customClass="ConversationTableViewController" customModule="ghost" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="CSV-zo-WSJ">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="message" id="i5P-3A-eBC">
+                                <rect key="frame" x="0.0" y="92" width="600" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="i5P-3A-eBC" id="0QS-hZ-Chb">
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" tag="12" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8NB-Y4-4j7">
+                                            <rect key="frame" x="476" y="1" width="116" height="37"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="116" id="K4s-Ur-mUC"/>
+                                            </constraints>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                        <label opaque="NO" userInteractionEnabled="NO" tag="11" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wKN-r9-FpK">
+                                            <rect key="frame" x="8" y="2" width="433" height="36"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstAttribute="bottomMargin" secondItem="8NB-Y4-4j7" secondAttribute="bottom" constant="-2.5" id="Gpb-hG-ghM"/>
+                                        <constraint firstItem="wKN-r9-FpK" firstAttribute="top" secondItem="0QS-hZ-Chb" secondAttribute="top" constant="2" id="JOF-Yu-oIQ"/>
+                                        <constraint firstItem="wKN-r9-FpK" firstAttribute="centerY" secondItem="8NB-Y4-4j7" secondAttribute="centerY" id="Qx9-2a-x0U"/>
+                                        <constraint firstItem="wKN-r9-FpK" firstAttribute="baseline" secondItem="8NB-Y4-4j7" secondAttribute="baseline" id="VKb-kg-hfV"/>
+                                        <constraint firstItem="wKN-r9-FpK" firstAttribute="leading" secondItem="0QS-hZ-Chb" secondAttribute="leadingMargin" id="bkB-jw-0pB"/>
+                                        <constraint firstAttribute="trailingMargin" secondItem="8NB-Y4-4j7" secondAttribute="trailing" id="sjs-bW-JWU"/>
+                                        <constraint firstItem="8NB-Y4-4j7" firstAttribute="leading" secondItem="wKN-r9-FpK" secondAttribute="trailing" constant="35" id="z1J-38-Fad"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="oI3-IB-ZgT" id="S6I-Gb-SVM"/>
+                            <outlet property="delegate" destination="oI3-IB-ZgT" id="fKm-mf-1PY"/>
+                        </connections>
+                    </tableView>
+                    <toolbarItems/>
+                    <navigationItem key="navigationItem" id="x8t-1K-A2C">
+                        <barButtonItem key="rightBarButtonItem" title="Send Message" id="a8t-Ry-jw6">
+                            <connections>
+                                <action selector="sendMessage:" destination="oI3-IB-ZgT" id="POO-w2-sBF"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="XqP-i0-lKH" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2585" y="-250"/>
+        </scene>
         <!--Contacts Table View Controller-->
         <scene sceneID="bCG-Mg-6RK">
             <objects>
@@ -30,16 +94,16 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="ULf-Vs-Arw">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="MHb-dM-t7h">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="eGq-Yj-Sdk">
                             <connections>
-                                <action selector="addContact:" destination="MMZ-d9-1dU" id="MKI-f1-AE9"/>
+                                <action selector="addContact:" destination="MMZ-d9-1dU" id="kfK-Qb-ahr"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tAD-2U-XCd" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2607" y="79"/>
+            <point key="canvasLocation" x="2585" y="499"/>
         </scene>
         <!--Main Table View Controller-->
         <scene sceneID="pfa-zd-d1x">
@@ -50,7 +114,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="9eJ-bo-ZqW">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="convo" id="9eJ-bo-ZqW">
                                 <rect key="frame" x="0.0" y="92" width="600" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="9eJ-bo-ZqW" id="Xoh-1S-zVE">
@@ -65,17 +129,27 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="wWg-mU-Hwa">
-                        <barButtonItem key="leftBarButtonItem" title="Contacts" id="OPA-pc-kgE">
-                            <connections>
-                                <segue destination="MMZ-d9-1dU" kind="show" identifier="to-contacts" id="QxU-Tw-tdm"/>
-                            </connections>
-                        </barButtonItem>
+                        <leftBarButtonItems>
+                            <barButtonItem title="Contacts" id="OPA-pc-kgE">
+                                <connections>
+                                    <segue destination="MMZ-d9-1dU" kind="show" identifier="to-contacts" id="QxU-Tw-tdm"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Start Conversation" id="wFe-eK-SAp">
+                                <connections>
+                                    <action selector="addConvo:" destination="U9c-zn-HOT" id="owS-Js-zxX"/>
+                                </connections>
+                            </barButtonItem>
+                        </leftBarButtonItems>
                         <barButtonItem key="rightBarButtonItem" title="Quit" id="SmR-CH-rQY">
                             <connections>
                                 <action selector="quit:" destination="U9c-zn-HOT" id="9KW-oh-427"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <segue destination="oI3-IB-ZgT" kind="show" identifier="to-convo" id="Xfq-9c-n5l"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nyH-ex-Yjd" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -288,6 +362,21 @@
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YQY-eu-Gr2" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <navigationItem id="3Lf-FY-Emt">
+                    <leftBarButtonItems>
+                        <barButtonItem title="Contacts" id="kAK-Rx-z1w"/>
+                        <barButtonItem title="Start Conversation" id="16e-xm-chP">
+                            <connections>
+                                <action selector="addConvo:" destination="U9c-zn-HOT" id="LvC-lo-9Ug"/>
+                            </connections>
+                        </barButtonItem>
+                    </leftBarButtonItems>
+                    <barButtonItem key="rightBarButtonItem" title="Quit" id="HCs-jG-NXg">
+                        <connections>
+                            <action selector="quit:" destination="U9c-zn-HOT" id="nEh-cA-7qj"/>
+                        </connections>
+                    </barButtonItem>
+                </navigationItem>
             </objects>
             <point key="canvasLocation" x="19" y="540"/>
         </scene>

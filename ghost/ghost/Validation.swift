@@ -10,10 +10,6 @@ import Foundation
 
 class Validation {
     
-    init() {
-        
-    }
-    
     // Range Check
     func isInRange(text: String, lo: Int, hi: Int) -> Bool {
         let textLength = text.characters.count
@@ -23,7 +19,7 @@ class Validation {
             return false
         }
     }
-
+    
     // Alpha Numeric Character Check
     func isAlphaNumeric(text: String) -> Bool {
         let alphaNumerics = NSCharacterSet.alphanumericCharacterSet()
