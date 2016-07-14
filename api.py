@@ -229,18 +229,16 @@ class convo(Resource):
                 SELECT user_id FROM users_convos WHERE convo_id=%s
                 '''
 
-        # for a convo id, which the same user is a member of, select all the user_id associated with it
-
         convos = {}
-        for convo_id in query:
-            cursor.execute(convo_name_sql, (convo_id[0],))
+        for convo_id, in query:
+            cursor.execute(convo_name_sql, (convo_id,))
             convo_name = cursor.fetchone()[0]
             convo = {'convo_name': convo_name}
-            cursor.execute(convo_members_sql, (convo_id[0],))
+            cursor.execute(convo_members_sql, (convo_id,))
             members_list = cursor.fetchall()
-            members_csv = ','.join(str(uid[0] for uid in members_list))
+            members_csv = ','.join(str(uid[0]) for uid in members_list)
             convo.update({'members': members_csv})
-            convos.update({int(convo_id[0]): convo})
+            convos.update({int(convo_id): convo})
 
         data = {'convos': convos}
         return {'success': 1, 'data': data}
@@ -265,13 +263,13 @@ class message(Resource):
                 '''
         # messages = { convo_id : [ convo_objs ... ]
         messages = {}
-        for message_id in query:
+        for message_id, in query:
             cursor.execute(get_message_sql, (message_id,))
             convo_id, user_id, message = cursor.fetchone()
             if convo_id not in messages:
                 messages[convo_id] = []
             message_obj = {'message': message,
-                           'message_id': message_id[0],
+                           'message_id': message_id,
                            'user_id': user_id}
             messages[convo_id].append(message_obj)
         data = {'messages': messages}
@@ -327,13 +325,8 @@ class message(Resource):
                     INSERT INTO users_convos (convo_id, user_id)
                         VALUES (%s, %s)
                     '''
-            for recipient in recipients_list:
-                get_recipient_id_sql = \
-                        '''
-                        SELECT user_id from users WHERE username=%s
-                        '''
-                cursor.execute(get_recipient_id_sql, (recipient,))
-                recipient_id = cursor.fetchone()[0]
+            recipients_list = recipients.split(',')
+            for recipient_id in recipients_list:
                 cursor.execute(user_convo_sql, (convo_id, recipient_id))
             cursor.execute(user_convo_sql, (convo_id, user_id))
             database.commit()
