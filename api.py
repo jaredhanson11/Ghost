@@ -15,7 +15,6 @@ class signup(Resource):
         BODY:
             {'username': <username>,
              'password': <password>}
-
         RESPONSE 'data':
             {'user_id': <user_id>,
              'username': <username>}
@@ -65,7 +64,6 @@ class login(Resource):
         BODY:
             {'username': <username>,
              'password': <password>}
-
         RESPONSE 'data':
             {'user_id': <user_id>,
              'username': <username>}
@@ -104,7 +102,6 @@ class contact(Resource):
     def get(self, user_id):
         '''
         GET /<user_id>/contact/
-
         RESPONSE 'data':
             {'contacts':
                 {<contact_id>: <contact_username>,
@@ -145,11 +142,9 @@ class contact(Resource):
         POST /<user_id>/convo/
         BODY:
             {'username': <contact_username>}
-
         RESPONSE 'data':
             {<contact_user_id>: <contact_username>}
         '''
-
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -203,7 +198,6 @@ class convo(Resource):
     def get(self, user_id):
         '''
         GET /<user_id>/convo/
-
         RESPONSE 'data':
             {'convos':
                 {<convo_id>:
@@ -236,15 +230,15 @@ class convo(Resource):
                 '''
 
         convos = {}
-        for convo_id in query:
+        for convo_id, in query:
             cursor.execute(convo_name_sql, (convo_id,))
             convo_name = cursor.fetchone()[0]
             convo = {'convo_name': convo_name}
             cursor.execute(convo_members_sql, (convo_id,))
             members_list = cursor.fetchall()
-            members_csv = ','.join(str(uid[0] for uid in members_list))
+            members_csv = ','.join(str(uid[0]) for uid in members_list)
             convo.update({'members': members_csv})
-            convos.update({convo_id: convo})
+            convos.update({int(convo_id): convo})
 
         data = {'convos': convos}
         return {'success': 1, 'data': data}
@@ -269,7 +263,7 @@ class message(Resource):
                 '''
         # messages = { convo_id : [ convo_objs ... ]
         messages = {}
-        for message_id in query:
+        for message_id, in query:
             cursor.execute(get_message_sql, (message_id,))
             convo_id, user_id, message = cursor.fetchone()
             if convo_id not in messages:
@@ -286,7 +280,6 @@ class message(Resource):
     def post(self, user_id):
         '''
         POST /<user_id>/message/
-
         If replying to thread:
             BODY:
                 {'convo_id': <convo_id>,
