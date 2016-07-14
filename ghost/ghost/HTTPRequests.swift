@@ -23,18 +23,15 @@ class HTTPRequests {
         self.params = params
     }
     
-    // A simple post http request
     // TODO: parameter validation
     // TODO: error handling
-    // You cannot return from closures (void return signature) because that is equivalent to applying a 
-    // synchronous construct to an asynchronous task
     func POST(callback: (json: [String:AnyObject]) -> Void) {
         let url: String = "http://" + host + ":" + port + "/" + resource + "/"
         Alamofire.request(.POST, url, parameters: self.params, encoding: .JSON).responseJSON { response in
             switch response.result {
             case .Success(let data):
-                    let data = data as! [String:AnyObject]
-                    callback(json: data)
+                let data = data as! [String:AnyObject]
+                callback(json: data)
             case .Failure(let error):
                 print("Request failed with error: \(error)")
             }

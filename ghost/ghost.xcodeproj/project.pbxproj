@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0438D27E1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0438D27C1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld */; };
+		040C43C91D37D4CC009C78E7 /* ConversationTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040C43C81D37D4CB009C78E7 /* ConversationTableViewController.swift */; };
+		040C43CD1D37D51C009C78E7 /* Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040C43CC1D37D51C009C78E7 /* Cache.swift */; };
 		044737181CFF4DBB004FBC45 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737171CFF4DBB004FBC45 /* AppDelegate.swift */; };
 		0447371A1CFF4DBB004FBC45 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044737191CFF4DBB004FBC45 /* LoginViewController.swift */; };
 		0447371D1CFF4DBB004FBC45 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0447371B1CFF4DBB004FBC45 /* Main.storyboard */; };
@@ -55,7 +56,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0438D27D1D2F04B000AE23BC /* CacheDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = CacheDataModel.xcdatamodel; sourceTree = "<group>"; };
+		040C43C81D37D4CB009C78E7 /* ConversationTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationTableViewController.swift; sourceTree = "<group>"; };
+		040C43CC1D37D51C009C78E7 /* Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cache.swift; sourceTree = "<group>"; };
 		044737141CFF4DBB004FBC45 /* ghost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ghost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		044737171CFF4DBB004FBC45 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		044737191CFF4DBB004FBC45 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
@@ -135,14 +137,15 @@
 				044737191CFF4DBB004FBC45 /* LoginViewController.swift */,
 				044737491CFF8AE3004FBC45 /* SignupViewController.swift */,
 				04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */,
+				040C43C81D37D4CB009C78E7 /* ConversationTableViewController.swift */,
 				048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */,
 				044737451CFF578D004FBC45 /* Validation.swift */,
 				044737471CFF7613004FBC45 /* HTTPRequests.swift */,
+				040C43CC1D37D51C009C78E7 /* Cache.swift */,
 				0447371B1CFF4DBB004FBC45 /* Main.storyboard */,
 				0447371E1CFF4DBB004FBC45 /* Assets.xcassets */,
 				044737201CFF4DBB004FBC45 /* LaunchScreen.storyboard */,
 				044737231CFF4DBB004FBC45 /* Info.plist */,
-				0438D27C1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld */,
 			);
 			path = ghost;
 			sourceTree = "<group>";
@@ -398,13 +401,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				0447371A1CFF4DBB004FBC45 /* LoginViewController.swift in Sources */,
+				040C43CD1D37D51C009C78E7 /* Cache.swift in Sources */,
 				044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */,
-				0438D27E1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld in Sources */,
 				0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */,
 				044737461CFF578D004FBC45 /* Validation.swift in Sources */,
 				04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */,
 				044737181CFF4DBB004FBC45 /* AppDelegate.swift in Sources */,
 				048377D51D2D6EAC00A76553 /* ContactsTableViewController.swift in Sources */,
+				040C43C91D37D4CC009C78E7 /* ConversationTableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -654,19 +658,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		0438D27C1D2F04B000AE23BC /* CacheDataModel.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				0438D27D1D2F04B000AE23BC /* CacheDataModel.xcdatamodel */,
-			);
-			currentVersion = 0438D27D1D2F04B000AE23BC /* CacheDataModel.xcdatamodel */;
-			path = CacheDataModel.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 0447370C1CFF4DBB004FBC45 /* Project object */;
 }
