@@ -15,7 +15,6 @@ class signup(Resource):
         BODY:
             {'username': <username>,
              'password': <password>}
-
         RESPONSE 'data':
             {'user_id': <user_id>,
              'username': <username>}
@@ -65,7 +64,6 @@ class login(Resource):
         BODY:
             {'username': <username>,
              'password': <password>}
-
         RESPONSE 'data':
             {'user_id': <user_id>,
              'username': <username>}
@@ -104,7 +102,6 @@ class contact(Resource):
     def get(self, user_id):
         '''
         GET /<user_id>/contact/
-
         RESPONSE 'data':
             {'contacts':
                 {<contact_id>: <contact_username>,
@@ -145,11 +142,9 @@ class contact(Resource):
         POST /<user_id>/convo/
         BODY:
             {'username': <contact_username>}
-
         RESPONSE 'data':
             {<contact_user_id>: <contact_username>}
         '''
-
 
         request_parser = reqparse.RequestParser()
         request_parser.add_argument('username', type=str, location='json')
@@ -203,7 +198,6 @@ class convo(Resource):
     def get(self, user_id):
         '''
         GET /<user_id>/convo/
-
         RESPONSE 'data':
             {'convos':
                 {<convo_id>:
@@ -235,16 +229,18 @@ class convo(Resource):
                 SELECT user_id FROM users_convos WHERE convo_id=%s
                 '''
 
+        # for a convo id, which the same user is a member of, select all the user_id associated with it
+
         convos = {}
         for convo_id in query:
-            cursor.execute(convo_name_sql, (convo_id,))
+            cursor.execute(convo_name_sql, (convo_id[0],))
             convo_name = cursor.fetchone()[0]
             convo = {'convo_name': convo_name}
-            cursor.execute(convo_members_sql, (convo_id,))
+            cursor.execute(convo_members_sql, (convo_id[0],))
             members_list = cursor.fetchall()
             members_csv = ','.join(str(uid[0] for uid in members_list))
             convo.update({'members': members_csv})
-            convos.update({convo_id: convo})
+            convos.update({int(convo_id[0]): convo})
 
         data = {'convos': convos}
         return {'success': 1, 'data': data}
@@ -275,7 +271,7 @@ class message(Resource):
             if convo_id not in messages:
                 messages[convo_id] = []
             message_obj = {'message': message,
-                           'message_id': message_id,
+                           'message_id': message_id[0],
                            'user_id': user_id}
             messages[convo_id].append(message_obj)
         data = {'messages': messages}
@@ -286,7 +282,6 @@ class message(Resource):
     def post(self, user_id):
         '''
         POST /<user_id>/message/
-
         If replying to thread:
             BODY:
                 {'convo_id': <convo_id>,
@@ -332,8 +327,13 @@ class message(Resource):
                     INSERT INTO users_convos (convo_id, user_id)
                         VALUES (%s, %s)
                     '''
-            recipients_list = recipients.split(',')
-            for recipient_id in recipients_list:
+            for recipient in recipients_list:
+                get_recipient_id_sql = \
+                        '''
+                        SELECT user_id from users WHERE username=%s
+                        '''
+                cursor.execute(get_recipient_id_sql, (recipient,))
+                recipient_id = cursor.fetchone()[0]
                 cursor.execute(user_convo_sql, (convo_id, recipient_id))
             cursor.execute(user_convo_sql, (convo_id, user_id))
             database.commit()
