@@ -9,7 +9,8 @@ def _create_contacts():
         '''
         CREATE TABLE contacts (
             user_id INT NOT NULL,
-            contact_id INT NOT NULL)
+            contact_id INT NOT NULL,
+            is_contact INT NOT NULL)
         '''
     _execute_sql(sql)
     print 'Created table: contacts (user_id, contact_id)'
