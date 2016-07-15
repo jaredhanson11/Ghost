@@ -98,45 +98,58 @@ class login(Resource):
             return {'success': 1, 'data': data}
 
 
+class main_page(Resource):
+    def get(self, userid):
+        contacts = _get_contact(user_id)['contacts']
+        convos = _get_convo(user_id)['convos']
+        messages = _get_messages(user_id)['messages']
+
+        user_interactions = set()
+
+        for convo in convos.values():
+            members_list = convo['members'].split(',')
+            for member_id in members_list:
+                if int(member_id) not in contacts:
+                    known_user = _add_known_user(user_id, known_user_id)
+                    contacts.update(known_user)
+
+        data = {}
+        data.update({'contacts': contacts})
+        data.update({'convos': convos})
+        data.update({'messages': messages})
+        ret = {'success': data}
+
+        return ret
+
+
+def _add_known_user(user_id, known_user_id):
+
+    database = _get_db()
+    cursor = database.cursor()
+
+    insert_sql = \
+            '''
+            INSERT INTO contacts (user_id, contact_id, is_contact)
+                VALUES (%s, %s, 0)
+            '''
+    get_username_sql = \
+            '''
+            SELECT username FROM users WHERE user_id=%s
+            '''
+
+    cursor.execute(get_username_sql, (known_user_id))
+    known_user_name = cursor.fetchone()[0]
+
+    cursor.execute(insert_sql, (user_id, known_user_id))
+    cursor.execute(insert_sql, (known_user_id, user_id))
+    database.commit()
+
+    return {int(known_user_id): {'contact_username': known_user_name,
+                                 'is_contact': 0}}
+
+
+
 class contact(Resource):
-    def get(self, user_id):
-        '''
-        GET /<user_id>/contact/
-        RESPONSE 'data':
-            {'contacts':
-                {<contact_id>: <contact_username>,
-                 ...
-                }
-            }
-        '''
-
-        database = _get_db()
-        cursor = database.cursor()
-
-        select_sql = \
-                '''
-                SELECT contact_id FROM contacts WHERE user_id=%s
-                '''
-        get_username_sql = \
-                '''
-                SELECT username FROM users WHERE user_id=%s
-                '''
-
-        cursor.execute(select_sql, (user_id,))
-        query = cursor.fetchall()
-
-        contacts = {}
-        for db_row in query:
-            contact_id = db_row[0]
-            cursor.execute(get_username_sql, (contact_id,))
-            contact_username = cursor.fetchone()[0]
-            contact = {contact_id: contact_username}
-            contacts.update(contact)
-
-        data = {'contacts': contacts}
-        print {'success': 1, 'data': data}
-        return {'success': 1, 'data': data}
-
     def post(self, user_id):
         '''
         POST /<user_id>/convo/
@@ -161,7 +174,14 @@ class contact(Resource):
 
         add_contact_sql = \
                 '''
-                INSERT INTO contacts (user_id, contact_id) VALUES (%s, %s)
+                INSERT INTO contacts (user_id, contact_id, is_contact)
+                    VALUES (%s, %s, %s)
+                '''
+        update_contact_sql = \
+                '''
+                UPDATE contacts
+                    SET is_contact=1
+                    WHERE user_id=%s and contact_id=%s
                 '''
 
         cursor.execute(select_sql, (contact_username,))
@@ -170,7 +190,7 @@ class contact(Resource):
         # check if contact is already established
         check_contact_list = \
                 '''
-                SELECT * FROM contacts WHERE user_id=%s and contact_id=%s
+                SELECT is_contact FROM contacts WHERE user_id=%s and contact_id=%s
                 '''
 
         if not query:
@@ -182,17 +202,70 @@ class contact(Resource):
             cursor.execute(check_contact_list, (user_id, contact_id,))
             query = cursor.fetchone()
             if not query:
-                cursor.execute(add_contact_sql, (user_id, contact_id))
-                cursor.execute(add_contact_sql, (contact_id, user_id))
+                cursor.execute(add_contact_sql, (user_id, contact_id, 1))
+                cursor.execute(add_contact_sql, (contact_id, user_id, 1))
                 database.commit()
-                data = {contact_id: contact_username}
+                data = {contact_id: {'contact_username': contact_username,
+                                     'is_contact': 1}}
                 print {'success': 1, 'data': data}
                 return {'success': 1, 'data': data}
             else:
-                data = {'error' : '%s is already on your contact list' % (username)}
-                print {'success' : 0, 'data' : data}
-                return {'success' : 0, 'data' : data}
+                is_contact = int(query[0])
+                if not is_contact:
+                    cursor.execute(update_contact_sql, (user_id, contact_id))
+                    cursor.execute(update_contact_sql, (contact_id, user_id))
+                    database.commit()
+                    data = {contact_id: {'contact_username': contact_username,
+                                         'is_contact': 1}}
+                    print {'success': 1, 'data': data}
+                    return {'success': 1, 'data': data}
+                else:
+                    data = {'error' : '%s is already on your contact list' % (contact_username)}
+                    print {'success' : 0, 'data' : data}
+                    return {'success' : 0, 'data' : data}
 
+
+    def get(self, user_id):
+        '''
+        GET /<user_id>/contact/
+        RESPONSE 'data':
+            {'contacts':
+                {<contact_id>: <contact_username>,
+                 ...
+                }
+            }
+        '''
+        ret = _get_contact(user_id)
+        return ret
+
+
+def _get_contact(user_id):
+    database = _get_db()
+    cursor = database.cursor()
+
+    select_sql = \
+            '''
+            SELECT contact_id,is_contact FROM contacts WHERE user_id=%s
+            '''
+    get_username_sql = \
+            '''
+            SELECT username FROM users WHERE user_id=%s
+            '''
+
+    cursor.execute(select_sql, (user_id,))
+    query = cursor.fetchall()
+
+    contacts = {}
+    for contact_id, is_contact in query:
+        cursor.execute(get_username_sql, (contact_id,))
+        contact_username = cursor.fetchone()[0]
+        contact = {int(contact_id): {'contact_username': contact_username,
+                                     'is_contact': is_contact}}
+        contacts.update(contact)
+
+    data = {'contacts': contacts}
+    print {'success': 1, 'data': data}
+    return {'success': 1, 'data': data}
 
 class convo(Resource):
     def get(self, user_id):
@@ -208,75 +281,47 @@ class convo(Resource):
                 }
             }
         '''
+        ret = _get_convo(user_id)
+        return ret
 
-        database = _get_db()
-        cursor = database.cursor()
+def _get_convo(user_id):
+    database = _get_db()
+    cursor = database.cursor()
 
-        select_sql = \
-                '''
-                SELECT convo_id FROM users_convos WHERE user_id=%s
-                '''
+    select_sql = \
+            '''
+            SELECT convo_id FROM users_convos WHERE user_id=%s
+            '''
 
-        cursor.execute(select_sql, (user_id,))
-        query = cursor.fetchall()
+    cursor.execute(select_sql, (user_id,))
+    query = cursor.fetchall()
 
-        convo_name_sql = \
-                '''
-                SELECT convo_name FROM convos WHERE convo_id=%s
-                '''
-        convo_members_sql = \
-                '''
-                SELECT user_id FROM users_convos WHERE convo_id=%s
-                '''
+    convo_name_sql = \
+            '''
+            SELECT convo_name FROM convos WHERE convo_id=%s
+            '''
+    convo_members_sql = \
+            '''
+            SELECT user_id FROM users_convos WHERE convo_id=%s
+            '''
 
-        convos = {}
-        for convo_id, in query:
-            cursor.execute(convo_name_sql, (convo_id,))
-            convo_name = cursor.fetchone()[0]
-            convo = {'convo_name': convo_name}
-            cursor.execute(convo_members_sql, (convo_id,))
-            members_list = cursor.fetchall()
-            members_csv = ','.join(str(uid[0]) for uid in members_list)
-            convo.update({'members': members_csv})
-            convos.update({int(convo_id): convo})
+    convos = {}
+    for convo_id, in query:
+        cursor.execute(convo_name_sql, (convo_id,))
+        convo_name = cursor.fetchone()[0]
+        convo = {'convo_name': convo_name}
+        cursor.execute(convo_members_sql, (convo_id,))
+        members_list = cursor.fetchall()
+        members_csv = ','.join(str(uid[0]) for uid in members_list)
+        convo.update({'members': members_csv})
+        convos.update({int(convo_id): convo})
 
-        data = {'convos': convos}
-        return {'success': 1, 'data': data}
+    data = {'convos': convos}
+    print {'success': 1, 'data': data}
+    return {'success': 1, 'data': data}
 
 
 class message(Resource):
-    def get(self, user_id):
-
-        database = _get_db()
-        cursor = database.cursor()
-
-        get_messages_sql = \
-                '''
-                SELECT message_id FROM users_messages WHERE user_id=%s
-                '''
-        cursor.execute(get_messages_sql, (user_id,))
-        query = cursor.fetchall()
-
-        get_message_sql = \
-                '''
-                SELECT convo_id,user_id,message FROM messages WHERE message_id=%s
-                '''
-        # messages = { convo_id : [ convo_objs ... ]
-        messages = {}
-        for message_id, in query:
-            cursor.execute(get_message_sql, (message_id,))
-            convo_id, user_id, message = cursor.fetchone()
-            if convo_id not in messages:
-                messages[convo_id] = []
-            message_obj = {'message': message,
-                           'message_id': message_id,
-                           'user_id': user_id}
-            messages[convo_id].append(message_obj)
-        data = {'messages': messages}
-        print {'succsee': 1, 'data': data}
-        return {'success': 1, 'data': data}
-
-
     def post(self, user_id):
         '''
         POST /<user_id>/message/
@@ -364,6 +409,45 @@ class message(Resource):
         data = {'convo_id': convo_id}
         print {'success': 1, 'data': data}
         return {'success': 1, 'data': data}
+
+    def get(self, user_id):
+        '''
+        TODO
+        '''
+        ret = _get_message(user_id)
+        return ret
+
+
+def _get_message(user_id):
+    database = _get_db()
+    cursor = database.cursor()
+
+    get_messages_sql = \
+            '''
+            SELECT message_id FROM users_messages WHERE user_id=%s
+            '''
+    cursor.execute(get_messages_sql, (user_id,))
+    query = cursor.fetchall()
+
+    get_message_sql = \
+            '''
+            SELECT convo_id,user_id,message FROM messages WHERE message_id=%s
+            '''
+    # messages = { convo_id : [ convo_objs ... ]
+    messages = {}
+    for message_id, in query:
+        cursor.execute(get_message_sql, (message_id,))
+        convo_id, user_id, message = cursor.fetchone()
+        if convo_id not in messages:
+            messages[convo_id] = []
+        message_obj = {'message': message,
+                       'message_id': message_id,
+                       'user_id': user_id}
+        messages[convo_id].append(message_obj)
+
+    data = {'messages': messages}
+    print {'success': 1, 'data': data}
+    return {'success': 1, 'data': data}
 
 
 class user(Resource):
