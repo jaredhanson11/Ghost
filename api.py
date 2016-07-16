@@ -99,10 +99,10 @@ class login(Resource):
 
 
 class main_page(Resource):
-    def get(self, userid):
-        contacts = _get_contact(user_id)['contacts']
-        convos = _get_convo(user_id)['convos']
-        messages = _get_messages(user_id)['messages']
+    def get(self, user_id):
+        contacts = _get_contact(user_id)['data']['contacts']
+        convos = _get_convo(user_id)['data']['convos']
+        messages = _get_message(user_id)['data']['messages']
 
         user_interactions = set()
 
@@ -400,7 +400,7 @@ class message(Resource):
         cursor.execute(get_convo_members, (convo_id,))
         query = cursor.fetchall()
 
-        for recipient_id in query:
+        for recipient_id, in query:
             if int(recipient_id) == int(user_id):
                 continue
             cursor.execute(insert_inbox_sql, (message_id, recipient_id))
@@ -516,6 +516,7 @@ api.add_resource(convo, '/<int:user_id>/convo/')
 api.add_resource(message, '/<int:user_id>/message/')
 api.add_resource(user, '/<int:user_id>/user/')
 api.add_resource(user_all, '/user/')
+api.add_resource(main_page, '/<int:user_id>/main_page')
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1")
