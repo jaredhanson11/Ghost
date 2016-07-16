@@ -5,7 +5,7 @@ from _users import _drop_users
 from _users_convos import _drop_users_convos
 from _users_messages import _drop_users_messages
 
-def initialize_tables():
+def drop_tables():
     '''
     Sets up all the neccesary tables for Ghost.
     '''
@@ -22,4 +22,4 @@ def initialize_tables():
             continue
 
 if __name__ == '__main__':
-    initialize_tables()
+    drop_tables()

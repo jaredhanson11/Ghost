@@ -13,7 +13,7 @@ def _create_contacts():
             is_contact INT NOT NULL)
         '''
     _execute_sql(sql)
-    print 'Created table: contacts (user_id, contact_id)'
+    print 'Created table: contacts (user_id, contact_id, is_contact)'
 
 def _drop_contacts():
     '''
