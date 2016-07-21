@@ -90,6 +90,48 @@ class message(Resource):
         print {'success': 1, 'data': data}
         return {'success': 1, 'data': data}
 
+    def put(self, user_id):
+        '''
+        PUT /user_id/message/
+        BODY
+            {'message_ids': '<message_id>,<message_id>,...'}
+        RESPONSE 'data'
+            {'message_ids': '<message_id>,<message_id>,...'}
+
+        Send a csv of message_ids that have been read
+        Returns a csv of message_ids that were successfully removed from inbox.
+        '''
+        request_parser = reqparse.RequestParser()
+        request_parser.add_argument('message_ids', type=str, location='json')
+        request_args = request_parser.parse_args()
+        message_ids_csv = request_args['message_ids']
+
+        database = _get_db()
+        cursor = database.cursor()
+
+        delete_inbox_sql = \
+                '''
+                DELETE FROM users_messages WHERE user_id=%s AND message_id=%s
+                '''
+
+        message_ids_list = message_ids_csv.split(',')
+        deleted_ids_list = []
+        for message_id in message_ids_list:
+            cursor.execute(delete_inbox_sql, (user_id, message_id))
+
+            if int(cursor.rowcount):
+                deleted_ids_list.append(message_id)
+
+        database.commit()
+
+        data = {'message_ids': ','.join(deleted_ids_list)}
+
+        print {'success': 1, 'data': data}
+        return {'success': 1, 'data': data}
+
+
+
+
     def get(self, user_id):
         '''
         TODO
