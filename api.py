@@ -13,7 +13,7 @@ api = Api(app)
 
 api.add_resource(signup, '/signup/')
 api.add_resource(login, '/login/')
-api.add_resource(main_page, '/<int:user_id>/main_page')
+api.add_resource(main_page, '/<int:user_id>/main_page/')
 api.add_resource(contact, '/<int:user_id>/contact/')
 api.add_resource(convo, '/<int:user_id>/convo/')
 api.add_resource(message, '/<int:user_id>/message/')
