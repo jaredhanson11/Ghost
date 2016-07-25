@@ -51,6 +51,7 @@ class message(Resource):
                         VALUES (%s, %s)
                     '''
             recipients_list = recipients.split(',')
+            print recipients_list
             for recipient_id in recipients_list:
                 cursor.execute(user_convo_sql, (convo_id, recipient_id))
             cursor.execute(user_convo_sql, (convo_id, user_id))
