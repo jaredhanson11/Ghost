@@ -93,19 +93,35 @@ class MainTableViewController: UITableViewController {
     //------------------------------START: ADD CONVERSATION-----------------------------------------------------
     
     @IBAction func addConvo(sender: AnyObject) {
-        print(Cache.sharedInstance.messagesCache)
         
         let addConvoAlert = UIAlertController(title: "Start a Conversation", message: "Enter a username to add to you contacts list", preferredStyle: .Alert)
         
         let addConvoAction = UIAlertAction(title: "Submit", style: .Default, handler: {(alert: UIAlertAction) -> Void in
+            print("hey")
             let usersString = addConvoAlert.textFields![0].text!
             let convoName = addConvoAlert.textFields![1].text!
             let message = addConvoAlert.textFields![2].text!
             let userList: [String] = self.getUsers(usersString)
             
+            // mapping recipient unique usernames to ids
+            var userIDString : String = ""
+            for i in 0...(userList.count-1) {
+                let user = userList[i]
+                for key in Array(Cache.sharedInstance.contactsCache.keys) {
+                    if user == Cache.sharedInstance.contactsCache[key]!["contact_username"] as! String {
+                        if i == (userList.count-1) {
+                            userIDString += key
+                        } else {
+                            userIDString += (key+",")
+                        }
+                    }
+                }
+            }
+            print(userIDString)
+            
             // SAVE TO SERVER: CONVO
             let resource: String = self.userID + "/message"
-            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["convo_name" : convoName, "message" : message, "recipients": usersString])
+            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["convo_name" : convoName, "message" : message, "recipients": userIDString])
             http.POST({ (json) -> Void in
                 let success = json["success"] as! Int
                 let data = json["data"] as! [String:AnyObject]

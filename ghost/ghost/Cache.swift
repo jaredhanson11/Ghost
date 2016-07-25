@@ -24,7 +24,6 @@ class Cache {
         self.convosCache.updateValue(convo, forKey: convoID)
     }
     
-    
     //------------------------------------END: ADD METHODS------------------------------------
     
     //------------------------------------START: DELETE METHODS------------------------------------
@@ -37,8 +36,8 @@ class Cache {
     
     //------------------------------------START: GET METHODS------------------------------------
     
-    func getContactFromCache(contactID: String) -> String {
-        return self.contactsCache[contactID] as! String
+    func getContactUsernameFromCache(contactID: String) -> String {
+        return self.contactsCache[contactID]!["contact_username"] as! String
     }
     
     //------------------------------------END: GET METHODS------------------------------------
