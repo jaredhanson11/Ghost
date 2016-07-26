@@ -63,7 +63,6 @@ class MainTableViewController: UITableViewController {
         let addConvoAlert = UIAlertController(title: "Start a Conversation", message: "Enter a username to add to you contacts list", preferredStyle: .Alert)
         
         let addConvoAction = UIAlertAction(title: "Submit", style: .Default, handler: {(alert: UIAlertAction) -> Void in
-            print("hey")
             let usersString = addConvoAlert.textFields![0].text!
             let convoName = addConvoAlert.textFields![1].text!
             let message = addConvoAlert.textFields![2].text!
@@ -71,8 +70,8 @@ class MainTableViewController: UITableViewController {
             
             var _message = ""
             
-            if (Validation.isInRange(usersString, lo: 0, hi: 0) || !Validation.isAlphaNumeric(usersString)) {
-                _message += "Please enter a non-zero number of alphanumeric usernames.\n"
+            if (Validation.isInRange(usersString, lo: 0, hi: 0)) {
+                _message += "Please enter a non-zero number usernames (separated by commas).\n"
             }
             // TODO: ACTUALLY GENERATE A HASH FOR THE NAME AND JUST INSERT THE USERS THERE
 //            if (Validation.isInRange(convoName, lo: 0, hi: 0) || Validation.isAlphaNumeric(convoName)) {
@@ -96,7 +95,9 @@ class MainTableViewController: UITableViewController {
             } else {
                 for i in 0...(userList.count-1) {
                     let user = userList[i]
+                    print(user)
                     for key in Array(Cache.sharedInstance.contactsCache.keys) {
+                        print(key)
                         if user == Cache.sharedInstance.contactsCache[key]!["contact_username"] as! String {
                             if i == (userList.count-1) {
                                 userIDString += key
@@ -107,6 +108,8 @@ class MainTableViewController: UITableViewController {
                     }
                 }
             }
+            
+            print(userIDString)
             
             // SAVE TO SERVER: CONVO
             let resource: String = self.userID + "/message"

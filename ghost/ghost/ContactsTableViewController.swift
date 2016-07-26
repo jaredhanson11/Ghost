@@ -11,11 +11,22 @@ import UIKit
 class ContactsTableViewController: UITableViewController {
     
     var userID: String = ""
-    
+    var contactsIsContact = [String]()
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
-        
+    
+        // LOAD CONTACTS FROM CACHE (REMOVE CONTACTS WHERE IS_CONTACT=0)
+        for i in 0...(Array(Cache.sharedInstance.contactsCache.keys).count-1) {
+            let key = Array(Cache.sharedInstance.contactsCache.keys)[i]
+            let data = Cache.sharedInstance.contactsCache[key] as! [String:AnyObject]
+            let isContact = String(data["is_contact"]!)
+            if (isContact == "1") {
+                let username = data["contact_username"] as! String
+                contactsIsContact.append(username)
+            }
+        }
+        print(contactsIsContact)
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
         
@@ -132,20 +143,13 @@ class ContactsTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return Cache.sharedInstance.contactsCache.count
+        return contactsIsContact.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        let key = Array(Cache.sharedInstance.contactsCache.keys)[indexPath.item]
-        let data = Cache.sharedInstance.contactsCache[key] as! [String:AnyObject]
-        let username = data["contact_username"] as! String
-        let isContact = String(data["is_contact"]!)
-        if (isContact == "1") {
-            print("hey")
-            cell.textLabel?.text = username
-        }
+        cell.textLabel?.text = contactsIsContact[indexPath.row]
         return cell
     }
     
