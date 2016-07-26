@@ -15,8 +15,10 @@ class Cache {
     
     //------------------------------------START: ADD METHODS------------------------------------
     
-    func addContactToCache(contactID: String, contactUsername: String) {
-        self.contactsCache.updateValue(contactUsername, forKey: contactID)
+    func addContactToCache(contactID: String, contactUsername: String, isContact: String) {
+        let data = ["contact_username" : contactUsername, "is_contact" : isContact]
+        self.contactsCache.updateValue(data, forKey: contactID)
+        print(self.contactsCache)
     }
     
     func addConvoToCache(convoID: String, convoName: String, members: String) {

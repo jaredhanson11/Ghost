@@ -31,7 +31,6 @@ class SignupViewController: UIViewController {
     
     @IBAction func signup(sender: AnyObject) {
         //  DATA VALIDATION
-        let validator = Validation() // in swift you don't have to import user-made classes
         
         let usernameText: String = username.text!
         let passwordText: String = password.text!
@@ -46,21 +45,22 @@ class SignupViewController: UIViewController {
         // in the event of a validation failure, a UIAlertAction will present itself and clear the username and password fields
         var message = ""
         
-        if (!validator.isAlphaNumeric(usernameText) || !validator.isInRange(usernameText, lo: uLo, hi: uHi)) {
+        if (!Validation.isAlphaNumeric(usernameText) || !Validation.isInRange(usernameText, lo: uLo, hi: uHi)) {
             message += "Please be sure your username is alphanumeric and within 5 and 20 characters.\n"
         }
         
-        if (!validator.isAlphaNumeric(passwordText) || !validator.isInRange(passwordText, lo: pLo, hi: pHi)) {
+        if (!Validation.isAlphaNumeric(passwordText) || !Validation.isInRange(passwordText, lo: pLo, hi: pHi)) {
             message += "Please be sure your password is alphanumeric and within 8 and 20 characters.\n"
         }
         
         if (message.characters.count > 0) {
-            username.text = ""
-            password.text = ""
             let signupIssue = UIAlertController(title: "Signup Issue", message: message, preferredStyle: UIAlertControllerStyle.Alert)
             let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
             signupIssue.addAction(action)
-            self.presentViewController(signupIssue, animated: true, completion: nil)
+            self.presentViewController(signupIssue, animated: true, completion: { () -> Void in
+                self.username.text = ""
+                self.password.text = ""
+            })
         } else {
             let http = HTTPRequests(host: "localhost", port: "5000", resource: "signup", params: ["username": usernameText, "password" : passwordText])
             // Critical importance: pass callbacks to asychronous tasks to gather the data

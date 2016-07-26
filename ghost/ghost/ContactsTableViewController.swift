@@ -11,11 +11,22 @@ import UIKit
 class ContactsTableViewController: UITableViewController {
     
     var userID: String = ""
-    
+    var contactsIsContact = [String]()
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
-        
+    
+        // LOAD CONTACTS FROM CACHE (REMOVE CONTACTS WHERE IS_CONTACT=0)
+        for i in 0...(Array(Cache.sharedInstance.contactsCache.keys).count-1) {
+            let key = Array(Cache.sharedInstance.contactsCache.keys)[i]
+            let data = Cache.sharedInstance.contactsCache[key] as! [String:AnyObject]
+            let isContact = String(data["is_contact"]!)
+            if (isContact == "1") {
+                let username = data["contact_username"] as! String
+                contactsIsContact.append(username)
+            }
+        }
+        print(contactsIsContact)
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
         
@@ -39,7 +50,6 @@ class ContactsTableViewController: UITableViewController {
         let addAlert = UIAlertController(title: "Add Contact", message: "Enter a username to add to you contacts list", preferredStyle: .Alert)
         let action = UIAlertAction(title: "Submit", style: .Default, handler: { (action:UIAlertAction) -> Void in
             let username = (addAlert.textFields!.first?.text)!
-            let validator = Validation()
             
             // username range: 5-20 characters
             // password range: 8-20 characters
@@ -48,7 +58,7 @@ class ContactsTableViewController: UITableViewController {
             
             var message = ""
             
-            if (!validator.isAlphaNumeric(username) || !validator.isInRange(username, lo: uLo, hi: uHi)) {
+            if (!Validation.isAlphaNumeric(username) || !Validation.isInRange(username, lo: uLo, hi: uHi)) {
                 message += "Please be sure the username is alphanumeric and within 5 and 20 characters.\n"
             }
             
@@ -67,7 +77,9 @@ class ContactsTableViewController: UITableViewController {
                     if success == 1 {
                         // SAVE TO CACHE: CONTACT
                         let contact_id = Array(data.keys)[0]
-                        Cache.sharedInstance.addContactToCache(contact_id, contactUsername: username)
+                        let contactDict = (data[contact_id] as! [String:AnyObject])
+                        let isContact = String(contactDict["is_contact"]!) // pretty sure this is by definition a 1 if there's a success, but check that out later
+                        Cache.sharedInstance.addContactToCache(contact_id, contactUsername: username, isContact: isContact)
                         
                         let message: String = "You successfully added " + username + "!"
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
@@ -131,13 +143,13 @@ class ContactsTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return Cache.sharedInstance.contactsCache.count
+        return contactsIsContact.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        cell.textLabel?.text = Array(Cache.sharedInstance.contactsCache.values)[indexPath.item] as? String
+        cell.textLabel?.text = contactsIsContact[indexPath.row]
         return cell
     }
     

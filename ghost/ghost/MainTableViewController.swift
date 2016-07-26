@@ -18,50 +18,17 @@ class MainTableViewController: UITableViewController {
         
         //------------------------------START: SAVE TO CACHE-----------------------------------------------------
         
-        // SAVE TO CACHE: CONTACTS
-        let resource: String = userID + "/" + "contact"
+        // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
+        let resource: String = userID + "/" + "main_page"
         let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
         http.GET({ (json) -> Void in
-            let success = json["success"] as! Int
-            if success == 1 {
-                let data = json["data"] as! [String:AnyObject]
+            let data = json["success"] as! [String:AnyObject]
+            if !data.isEmpty {
                 let contacts = data["contacts"] as! [String:AnyObject]
-                Cache.sharedInstance.contactsCache = contacts
-            } else {
-                let data = json["data"] as! [String:AnyObject]
-                let error = data["error"] as! String
-                print(error)
-            }
-        })
-        
-        // SAVE TO CACHE: CONVOS
-        let resource1: String = userID + "/" + "convo"
-        let http1 = HTTPRequests(host: "localhost", port: "5000", resource: resource1)
-        http1.GET({ (json) -> Void in
-            let success = json["success"] as! Int
-            if success == 1 {
-                let data = json["data"] as! [String:AnyObject]
                 let convos = data["convos"] as! [String:AnyObject]
-                Cache.sharedInstance.convosCache = convos
-                // LOAD THE CONVERSATION TABLE WITH CONVO NAMES
-                NSOperationQueue.mainQueue().addOperationWithBlock {
-                    self.tableView.reloadData()
-                }
-            } else {
-                let data = json["data"] as! [String:AnyObject]
-                let error = data["error"] as! String
-                print(error)
-            }
-        })
-        
-        // SAVE TO CACHE: MESSAGES
-        let resource2: String = userID + "/" + "message"
-        let http2 = HTTPRequests(host: "localhost", port: "5000", resource: resource2)
-        http2.GET({ (json) -> Void in
-            let success = json["success"] as! Int
-            if success == 1 {
-                let data = json["data"] as! [String:AnyObject]
                 let messages = data["messages"] as! [String:AnyObject]
+                Cache.sharedInstance.contactsCache = contacts
+                Cache.sharedInstance.convosCache = convos
                 Cache.sharedInstance.messagesCache = messages
             } else {
                 let data = json["data"] as! [String:AnyObject]
@@ -69,7 +36,6 @@ class MainTableViewController: UITableViewController {
                 print(error)
             }
         })
-        
         
         //------------------------------END: SAVE TO CACHE-----------------------------------------------------
         
@@ -97,26 +63,52 @@ class MainTableViewController: UITableViewController {
         let addConvoAlert = UIAlertController(title: "Start a Conversation", message: "Enter a username to add to you contacts list", preferredStyle: .Alert)
         
         let addConvoAction = UIAlertAction(title: "Submit", style: .Default, handler: {(alert: UIAlertAction) -> Void in
-            print("hey")
             let usersString = addConvoAlert.textFields![0].text!
             let convoName = addConvoAlert.textFields![1].text!
             let message = addConvoAlert.textFields![2].text!
             let userList: [String] = self.getUsers(usersString)
             
+            var _message = ""
+            
+            if (Validation.isInRange(usersString, lo: 0, hi: 0)) {
+                _message += "Please enter a non-zero number usernames (separated by commas).\n"
+            }
+            // TODO: ACTUALLY GENERATE A HASH FOR THE NAME AND JUST INSERT THE USERS THERE
+//            if (Validation.isInRange(convoName, lo: 0, hi: 0) || Validation.isAlphaNumeric(convoName)) {
+//                _message += "Please enter an alphanumeric conversation name
+//            }
+            if (Validation.isInRange(message, lo: 0, hi: 0)) {
+                _message += "Please enter a message."
+            }
+            
             // mapping recipient unique usernames to ids
             var userIDString : String = ""
-            for i in 0...(userList.count-1) {
-                let user = userList[i]
-                for key in Array(Cache.sharedInstance.contactsCache.keys) {
-                    if user == Cache.sharedInstance.contactsCache[key]!["contact_username"] as! String {
-                        if i == (userList.count-1) {
-                            userIDString += key
-                        } else {
-                            userIDString += (key+",")
+            if (_message.characters.count > 0) {
+                let convoAlertController = UIAlertController(title: "Conversation Issue", message: _message, preferredStyle: UIAlertControllerStyle.Alert)
+                let convoAlertAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                convoAlertController.addAction(convoAlertAction)
+                self.presentViewController(convoAlertController, animated: true, completion: { () -> Void in
+                    addConvoAlert.textFields![0].text = ""
+                    addConvoAlert.textFields![1].text = ""
+                    addConvoAlert.textFields![2].text = ""
+                })
+            } else {
+                for i in 0...(userList.count-1) {
+                    let user = userList[i]
+                    print(user)
+                    for key in Array(Cache.sharedInstance.contactsCache.keys) {
+                        print(key)
+                        if user == Cache.sharedInstance.contactsCache[key]!["contact_username"] as! String {
+                            if i == (userList.count-1) {
+                                userIDString += key
+                            } else {
+                                userIDString += (key+",")
+                            }
                         }
                     }
                 }
             }
+            
             print(userIDString)
             
             // SAVE TO SERVER: CONVO

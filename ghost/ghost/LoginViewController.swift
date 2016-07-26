@@ -40,7 +40,6 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
     // after entering login parameters, user clicks "login" button
     @IBAction func login(sender: AnyObject) {
         //  DATA VALIDATION
-        let validator = Validation() // in swift you don't have to import user-made classes
         
         // take in username and password, trim whitespace and newline characters
         let usernameText = username.text!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
@@ -56,21 +55,22 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
         // in the event of a validation failure, a UIAlertAction will present itself and clear the username and password fields
         var message = ""
         
-        if (!validator.isAlphaNumeric(usernameText) || !validator.isInRange(usernameText, lo: uLo, hi: uHi)) {
+        if (!Validation.isAlphaNumeric(usernameText) || !Validation.isInRange(usernameText, lo: uLo, hi: uHi)) {
             message += "Please be sure your username is alphanumeric and within 5 and 20 characters.\n"
         }
         
-        if (!validator.isAlphaNumeric(passwordText) || !validator.isInRange(passwordText, lo: pLo, hi: pHi)) {
+        if (!Validation.isAlphaNumeric(passwordText) || !Validation.isInRange(passwordText, lo: pLo, hi: pHi)) {
             message += "Please be sure your password is alphanumeric and within 8 and 20 characters.\n"
         }
         
         if (message.characters.count > 0) {
-            username.text = ""
-            password.text = ""
             let loginIssue = UIAlertController(title: "Login Issue", message: message, preferredStyle: UIAlertControllerStyle.Alert)
             let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
             loginIssue.addAction(action)
-            self.presentViewController(loginIssue, animated: true, completion: nil)
+            self.presentViewController(loginIssue, animated: true, completion: { () -> Void in
+                self.username.text = ""
+                self.password.text = ""
+            })
         } else {
             let http = HTTPRequests(host: "localhost", port: "5000", resource: "login", params: ["username": usernameText, "password" : passwordText])
             http.POST({ (json) -> Void in

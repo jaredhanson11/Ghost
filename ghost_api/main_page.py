@@ -26,7 +26,7 @@ class main_page(Resource):
         data.update({'convos': convos})
         data.update({'messages': messages})
         ret = {'success': data}
-
+        print ret
         return ret
 
 def _add_known_user(user_id, known_user_id):
