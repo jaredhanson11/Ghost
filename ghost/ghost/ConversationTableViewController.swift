@@ -89,7 +89,6 @@ class ConversationTableViewController: UITableViewController {
         }
     }
     
-    
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("message", forIndexPath: indexPath)
         let messageLabel = cell.viewWithTag(11) as! UILabel
@@ -99,7 +98,6 @@ class ConversationTableViewController: UITableViewController {
         let userID = String((Cache.sharedInstance.messagesCache[self.convoID]![indexPath.item] as! [String:AnyObject])["user_id"]!)
         let username = Cache.sharedInstance.contactsCache[userID] as? String
         // Configure the cell...
-        print(username)
         if (Cache.sharedInstance.messagesCache.keys.contains(self.convoID)) {
             messageLabel.text = message
             usernameLabel.text = username

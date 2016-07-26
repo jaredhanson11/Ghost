@@ -11,7 +11,7 @@ import Foundation
 class Validation {
     
     // Range Check
-    func isInRange(text: String, lo: Int, hi: Int) -> Bool {
+    static func isInRange(text: String, lo: Int, hi: Int) -> Bool {
         let textLength = text.characters.count
         if (textLength >= lo && textLength <= hi) {
             return true
@@ -21,7 +21,7 @@ class Validation {
     }
     
     // Alpha Numeric Character Check
-    func isAlphaNumeric(text: String) -> Bool {
+    static func isAlphaNumeric(text: String) -> Bool {
         let alphaNumerics = NSCharacterSet.alphanumericCharacterSet()
         for char in text.utf16 {
             if !alphaNumerics.characterIsMember(char) {
