@@ -93,10 +93,12 @@ class ConversationTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("message", forIndexPath: indexPath)
         let messageLabel = cell.viewWithTag(11) as! UILabel
         let usernameLabel = cell.viewWithTag(12) as! UILabel
-        
+        print(Cache.sharedInstance.messagesCache[self.convoID]![indexPath.item])
         let message = (Cache.sharedInstance.messagesCache[self.convoID]![indexPath.item] as! [String:AnyObject])["message"] as? String
         let userID = String((Cache.sharedInstance.messagesCache[self.convoID]![indexPath.item] as! [String:AnyObject])["user_id"]!)
         let username = Cache.sharedInstance.contactsCache[userID] as? String
+        print("username below")
+        print(username)
         // Configure the cell...
         if (Cache.sharedInstance.messagesCache.keys.contains(self.convoID)) {
             messageLabel.text = message

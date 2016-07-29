@@ -18,7 +18,6 @@ class Cache {
     func addContactToCache(contactID: String, contactUsername: String, isContact: String) {
         let data = ["contact_username" : contactUsername, "is_contact" : isContact]
         self.contactsCache.updateValue(data, forKey: contactID)
-        print(self.contactsCache)
     }
     
     func addConvoToCache(convoID: String, convoName: String, members: String) {
@@ -47,22 +46,22 @@ class Cache {
     static let sharedInstance = Cache()
 }
 
-func saveMessageBatch(convoID: Int, userID: Int, message: String) {
-    saveUserConvo(convoID, userID: userID)
-    saveMessage(convoID, userID: userID, message: message)
-}
-
-func saveUserConvo(convoID: Int, userID: Int) {
-    // SAVE convo to Cache.sharedInstance.userConvosCache
-    //userConvoObject.setValue(convoID, forKey: "convo_id")
-    //userConvoObject.setValue(userID, forKey: "user_id")
-}
-
-func saveMessage(convoID: Int, userID: Int, message: String) {
-    // Save to messageCache
-    //messageObject.setValue(convoID, forKey: "convo_id")
-    //messageObject.setValue(userID, forKey: "user_id")
-    //messageObject.setValue(message, forKey: "message")
-}
-
-// add, delete, change methods implemented
+//func saveMessageBatch(convoID: Int, userID: Int, message: String) {
+//    saveUserConvo(convoID, userID: userID)
+//    saveMessage(convoID, userID: userID, message: message)
+//}
+//
+//func saveUserConvo(convoID: Int, userID: Int) {
+//    // SAVE convo to Cache.sharedInstance.userConvosCache
+//    //userConvoObject.setValue(convoID, forKey: "convo_id")
+//    //userConvoObject.setValue(userID, forKey: "user_id")
+//}
+//
+//func saveMessage(convoID: Int, userID: Int, message: String) {
+//    // Save to messageCache
+//    //messageObject.setValue(convoID, forKey: "convo_id")
+//    //messageObject.setValue(userID, forKey: "user_id")
+//    //messageObject.setValue(message, forKey: "message")
+//}
+//
+//// add, delete, change methods implemented

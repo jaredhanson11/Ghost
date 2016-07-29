@@ -12,11 +12,13 @@ class MainTableViewController: UITableViewController {
     
     var userID: String = ""
     
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Conversations"
         
         //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+        
         
         // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
         let resource: String = userID + "/" + "main_page"
@@ -37,6 +39,14 @@ class MainTableViewController: UITableViewController {
             }
         })
         
+        // Comment this out to see if, upon loading a session of the app and logging in, the main table is populated with convos from the cache
+        // The idea is that upon logging in but before displaying the main page, viewdidload is run, with the asynchronous api call above populating the cache with necessary data
+        // it runs in the background and then sleep is executed allowing the data to fill
+        // then dotablerefresh is called which simply runs the tableview data population methods
+        sleep(1)
+        
+        doTableRefresh()
+        
         //------------------------------END: SAVE TO CACHE-----------------------------------------------------
         
         
@@ -51,6 +61,14 @@ class MainTableViewController: UITableViewController {
         print("Main Table View Controller: " + userID)
     }
     
+    override func viewDidAppear(animated: Bool) {
+        let loadingController = UIAlertController(title: "Loading", message: " generating conversations.", preferredStyle: UIAlertControllerStyle.Alert)
+        self.presentViewController(loadingController, animated: true, completion: nil)
+        sleep(1)
+        doTableRefresh()
+        self.dismissViewControllerAnimated(true, completion: nil)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -59,30 +77,25 @@ class MainTableViewController: UITableViewController {
     //------------------------------START: ADD CONVERSATION-----------------------------------------------------
     
     @IBAction func addConvo(sender: AnyObject) {
-        
         let addConvoAlert = UIAlertController(title: "Start a Conversation", message: "Enter a username to add to you contacts list", preferredStyle: .Alert)
-        
         let addConvoAction = UIAlertAction(title: "Submit", style: .Default, handler: {(alert: UIAlertAction) -> Void in
             let usersString = addConvoAlert.textFields![0].text!
+            let usersList = usersString.characters.split(",").map(String.init)
             let convoName = addConvoAlert.textFields![1].text!
             let message = addConvoAlert.textFields![2].text!
-            let userList: [String] = self.getUsers(usersString)
             
             var _message = ""
-            
             if (Validation.isInRange(usersString, lo: 0, hi: 0)) {
                 _message += "Please enter a non-zero number usernames (separated by commas).\n"
             }
-            // TODO: ACTUALLY GENERATE A HASH FOR THE NAME AND JUST INSERT THE USERS THERE
-//            if (Validation.isInRange(convoName, lo: 0, hi: 0) || Validation.isAlphaNumeric(convoName)) {
-//                _message += "Please enter an alphanumeric conversation name
-//            }
+            if (Validation.isInRange(convoName, lo: 0, hi: 0) || !Validation.isAlphaNumeric(convoName)) {
+                _message += "Please enter an alphanumeric conversation name"
+            }
             if (Validation.isInRange(message, lo: 0, hi: 0)) {
                 _message += "Please enter a message."
             }
             
-            // mapping recipient unique usernames to ids
-            var userIDString : String = ""
+            var usersIDString: String? = ""
             if (_message.characters.count > 0) {
                 let convoAlertController = UIAlertController(title: "Conversation Issue", message: _message, preferredStyle: UIAlertControllerStyle.Alert)
                 let convoAlertAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
@@ -93,63 +106,55 @@ class MainTableViewController: UITableViewController {
                     addConvoAlert.textFields![2].text = ""
                 })
             } else {
-                for i in 0...(userList.count-1) {
-                    let user = userList[i]
-                    print(user)
-                    for key in Array(Cache.sharedInstance.contactsCache.keys) {
-                        print(key)
-                        if user == Cache.sharedInstance.contactsCache[key]!["contact_username"] as! String {
-                            if i == (userList.count-1) {
-                                userIDString += key
-                            } else {
-                                userIDString += (key+",")
+                usersIDString = self.getUserIDs(usersList)
+                
+                if (usersIDString == nil) {
+                    let addConvoIssue = UIAlertController(title: "Conversation Issue", message: "Please be sure all users exist and are in your contacts list.", preferredStyle: .Alert)
+                    let addConvoIssueAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                    addConvoIssue.addAction(addConvoIssueAction)
+                    self.presentViewController(addConvoIssue, animated: true, completion: nil)
+                } else {
+                    // SAVE TO SERVER: CONVO
+                    let resource: String = self.userID + "/message"
+                    let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["convo_name" : convoName, "message" : message, "recipients": usersIDString!])
+                    http.POST({ (json) -> Void in
+                        let success = json["success"] as! Int
+                        let data = json["data"] as! [String:AnyObject]
+                        if success == 1 {
+                            // SAVE TO CACHE: CONVO
+                            let convo_id = String(data["convo_id"]!)
+                            Cache.sharedInstance.addConvoToCache(convo_id, convoName: convoName, members: usersIDString!)
+                            var alertMessage: String = "Conversation: \(convoName) started with"
+                            for i in 0...(usersList.count-1) {
+                                if (i == usersList.count-1) {
+                                    alertMessage += " \(usersList[i])."
+                                } else {
+                                    alertMessage += " \(usersList[i]),"
+                                }
+                            }
+                            let convoAddSuccess = UIAlertController(title: "Conversation Started", message: alertMessage, preferredStyle: UIAlertControllerStyle.Alert)
+                            let convoAddAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                            convoAddSuccess.addAction(convoAddAction)
+                            NSOperationQueue.mainQueue().addOperationWithBlock {
+                                self.presentViewController(convoAddSuccess, animated: true, completion: { () -> Void in
+                                    self.tableView.reloadData()
+                                    // SAVE TO CACHE: MESSAGE
+                                    //self.saveMessageBatch(convo_id, userID: Int(self.userID)!, message: message)
+                                })
+                            }
+                        } else {
+                            // TODO: IMPLEMENT SERVERSIDE AN ERROR
+                            //let error = String(data["error"])
+                            let contactAddIssue = UIAlertController(title: "Add Contact Issue",     message: "Error", preferredStyle: UIAlertControllerStyle.Alert)
+                            let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                            contactAddIssue.addAction(action)
+                            NSOperationQueue.mainQueue().addOperationWithBlock {
+                                self.presentViewController(contactAddIssue, animated: true, completion: nil)
                             }
                         }
-                    }
+                    })
                 }
             }
-            
-            print(userIDString)
-            
-            // SAVE TO SERVER: CONVO
-            let resource: String = self.userID + "/message"
-            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["convo_name" : convoName, "message" : message, "recipients": userIDString])
-            http.POST({ (json) -> Void in
-                let success = json["success"] as! Int
-                let data = json["data"] as! [String:AnyObject]
-                if success == 1 {
-                    // SAVE TO CACHE: CONVO
-                    let convo_id = String(data["convo_id"])
-                    Cache.sharedInstance.addConvoToCache(convo_id, convoName: convoName, members: usersString)
-                    var alertMessage: String = "Conversation: \(convoName) started with"
-                    for i in 0...(userList.count-1) {
-                        if (i == userList.count-1) {
-                            alertMessage += " \(userList[i])."
-                        } else {
-                            alertMessage += " \(userList[i]),"
-                        }
-                    }
-                    let convoAddSuccess = UIAlertController(title: "Conversation Started", message: alertMessage, preferredStyle: UIAlertControllerStyle.Alert)
-                    let convoAddAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
-                    convoAddSuccess.addAction(convoAddAction)
-                    NSOperationQueue.mainQueue().addOperationWithBlock {
-                        self.presentViewController(convoAddSuccess, animated: true, completion: { () -> Void in
-                            self.tableView.reloadData()
-                            // SAVE TO CACHE: MESSAGE
-                            //self.saveMessageBatch(convo_id, userID: Int(self.userID)!, message: message)
-                        })
-                    }
-                } else {
-                    // TODO: IMPLEMENT SERVERSIDE AN ERROR
-                    //let error = String(data["error"])
-                    let contactAddIssue = UIAlertController(title: "Add Contact Issue", message: "Error", preferredStyle: UIAlertControllerStyle.Alert)
-                    let action = UIAlertAction(title: "OK", style: .Default, handler: nil)
-                    contactAddIssue.addAction(action)
-                    NSOperationQueue.mainQueue().addOperationWithBlock {
-                        self.presentViewController(contactAddIssue, animated: true, completion: nil)
-                    }
-                }
-            })
         })
         addTextFieldToAlert(addConvoAlert, placeholder: "Enter users...")
         addTextFieldToAlert(addConvoAlert, placeholder: "Enter conversation name...")
@@ -169,9 +174,39 @@ class MainTableViewController: UITableViewController {
         }
     }
     
-    func getUsers(userString: String) -> [String] {
-        let stringList = userString.characters.split(",").map(String.init)
-        return stringList
+    func doTableRefresh() {
+        NSOperationQueue.mainQueue().addOperationWithBlock {
+            self.tableView.reloadData()
+        }
+    }
+    
+    func getUserIDs(usersList: [String]) -> String? {
+        var usersIDList: [String] = [String]()
+        for i in 0...(usersList.count-1) {
+            let user = usersList[i]
+            let contactIDs = Array(Cache.sharedInstance.contactsCache.keys)
+            for id in contactIDs {
+                let contactUsername = Cache.sharedInstance.contactsCache[id]!["contact_username"] as! String
+                if (user == contactUsername) {
+                    usersIDList.append(id)
+                }
+            }
+        }
+        
+        // Check if all contacts could be translated into their contactIDs
+        var usersIDString = ""
+        if (usersList.count == usersIDList.count) {
+            for i in 0...(usersIDList.count-1) {
+                if i == (usersIDList.count-1) {
+                    usersIDString += usersIDList[i]
+                } else {
+                    usersIDString += usersIDList[i] + ","
+                }
+            }
+            return usersIDString
+        } else {
+            return nil
+        }
     }
     
     @IBAction func quit(sender: AnyObject) {
@@ -215,13 +250,17 @@ class MainTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print("table method")
+        print(Cache.sharedInstance.convosCache.count)
         return Cache.sharedInstance.convosCache.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        print("table method")
+        print(Cache.sharedInstance.convosCache)
         let cell = tableView.dequeueReusableCellWithIdentifier("convo", forIndexPath: indexPath)
         // Configure the cell...
-        //print((Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"])
+        print((Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"])
         cell.textLabel!.text = (Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"]
         return cell
     }

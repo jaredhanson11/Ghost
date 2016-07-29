@@ -51,5 +51,5 @@ def _add_known_user(user_id, known_user_id):
     cursor.execute(insert_sql, (known_user_id, user_id))
     database.commit()
 
-    return {int(known_user_id): {'contact_username': known_user_name,
+    return {known_user_id: {'contact_username': known_user_name,
                                  'is_contact': 0}}

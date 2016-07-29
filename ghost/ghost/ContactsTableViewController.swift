@@ -11,22 +11,29 @@ import UIKit
 class ContactsTableViewController: UITableViewController {
     
     var userID: String = ""
-    var contactsIsContact = [String]()
+    
+    // This list stores all the contacts for which is_contact = 1 and whose usernames
+    // should thus be displayed in the tableview
+    var contactsIsContact = Cache.sharedInstance.contactsCache
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
     
         // LOAD CONTACTS FROM CACHE (REMOVE CONTACTS WHERE IS_CONTACT=0)
-        for i in 0...(Array(Cache.sharedInstance.contactsCache.keys).count-1) {
-            let key = Array(Cache.sharedInstance.contactsCache.keys)[i]
-            let data = Cache.sharedInstance.contactsCache[key] as! [String:AnyObject]
-            let isContact = String(data["is_contact"]!)
-            if (isContact == "1") {
-                let username = data["contact_username"] as! String
-                contactsIsContact.append(username)
+        let contactIDs = Array(contactsIsContact.keys)
+        if (!contactIDs.isEmpty) {
+            for i in 0...(contactIDs.count-1) {
+                let key = contactIDs[i]
+                let data = contactsIsContact[key] as! [String:AnyObject]
+                let isContact = String(data["is_contact"]!) // swift infers this as int so string constructor must be used instead of casting operation
+                if (isContact == "0") {
+                    contactsIsContact.removeValueForKey(key)
+                }
             }
         }
         print(contactsIsContact)
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
         
@@ -74,12 +81,15 @@ class ContactsTableViewController: UITableViewController {
                 http.POST({ (json) -> Void in
                     let success = json["success"] as! Int
                     let data = json["data"] as! [String:AnyObject]
-                    if success == 1 {
+                    if (success == 1) {
                         // SAVE TO CACHE: CONTACT
-                        let contact_id = Array(data.keys)[0]
-                        let contactDict = (data[contact_id] as! [String:AnyObject])
-                        let isContact = String(contactDict["is_contact"]!) // pretty sure this is by definition a 1 if there's a success, but check that out later
+                        let contact_id = data.keys.first!
+                        let contactDict = data[contact_id] as! [String:AnyObject]
+                        let isContact = String(contactDict["is_contact"]!) // by definition = 1
                         Cache.sharedInstance.addContactToCache(contact_id, contactUsername: username, isContact: isContact)
+                        
+                        let data = ["contact_username" : username, "is_contact" : isContact]
+                        self.contactsIsContact.updateValue(data, forKey: contact_id)
                         
                         let message: String = "You successfully added " + username + "!"
                         let contactAddSuccess = UIAlertController(title: "Add Contact Success", message: message, preferredStyle: UIAlertControllerStyle.Alert)
@@ -149,7 +159,10 @@ class ContactsTableViewController: UITableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        cell.textLabel?.text = contactsIsContact[indexPath.row]
+        let key = Array(contactsIsContact.keys)[indexPath.row]
+        let data = contactsIsContact[key] as! [String:AnyObject]
+        let username = data["contact_username"] as! String
+        cell.textLabel?.text = username
         return cell
     }
     
