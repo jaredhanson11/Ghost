@@ -49,7 +49,7 @@ def _get_convo(user_id):
         members_list = cursor.fetchall()
         members_csv = ','.join(str(uid[0]) for uid in members_list)
         convo.update({'members': members_csv})
-        convos.update({int(convo_id): convo})
+        convos.update({convo_id: convo})
 
     data = {'convos': convos}
     print {'success': 1, 'data': data}
