@@ -32,7 +32,8 @@ class ContactsTableViewController: UITableViewController {
                 }
             }
         }
-        print(contactsIsContact)
+        
+        doTableRefresh()
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -159,7 +160,7 @@ class ContactsTableViewController: UITableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        let key = Array(contactsIsContact.keys)[indexPath.row]
+        let key = Array(contactsIsContact.keys)[indexPath.item]
         let data = contactsIsContact[key] as! [String:AnyObject]
         let username = data["contact_username"] as! String
         cell.textLabel?.text = username

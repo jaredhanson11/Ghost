@@ -26,8 +26,10 @@ class message(Resource):
         request_parser.add_argument('convo_name', type=str, location='json')
         request_args = request_parser.parse_args()
         message = request_args['message']
+        print message
         ## Existing thread
         convo_id = request_args['convo_id']
+        print convo_id
         ## New conversation
         recipients = request_args['recipients']
         convo_name = request_args['convo_name']
@@ -107,6 +109,7 @@ class message(Resource):
         request_args = request_parser.parse_args()
         message_ids_csv = request_args['message_ids']
 
+        print("messages ids: " + message_ids_csv)
         database = _get_db()
         cursor = database.cursor()
 
@@ -116,8 +119,12 @@ class message(Resource):
                 '''
 
         message_ids_list = message_ids_csv.split(',')
+        message_ids_set = set(message_ids_list)
+
+        print(message_ids_set)
+
         deleted_ids_list = []
-        for message_id in message_ids_list:
+        for message_id in message_ids_set:
             cursor.execute(delete_inbox_sql, (user_id, message_id))
 
             if int(cursor.rowcount):

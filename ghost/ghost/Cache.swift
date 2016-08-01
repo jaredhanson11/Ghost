@@ -25,12 +25,34 @@ class Cache {
         self.convosCache.updateValue(convo, forKey: convoID)
     }
     
+    // add message to cache will be implemented when we have push notifications
+    
     //------------------------------------END: ADD METHODS------------------------------------
     
     //------------------------------------START: DELETE METHODS------------------------------------
     
     func deleteContactFromCache(contactID: String) {
         self.contactsCache.removeValueForKey(contactID)
+    }
+    
+    func deleteConvoFromCache(convoID: String) {
+        self.convosCache.removeValueForKey(convoID)
+    }
+    
+    func deleteMessageFromCache(convoID: String, messageID: String) {
+        var messages = self.messagesCache[convoID] as! [[String:AnyObject]]
+        //print(messages)
+        if (!messages.isEmpty) {
+            for i in 0...(messages.count-1) {
+                let messageIDFromCache = String(messages[i]["message_id"]!)
+                if (messageIDFromCache == messageID) {
+                    messages.removeAtIndex(i)
+                    self.messagesCache.removeValueForKey(convoID)
+                    self.messagesCache.updateValue(messages, forKey: convoID)
+                    break
+                }
+            }
+        }
     }
     
     //------------------------------------END: DELETE METHODS------------------------------------

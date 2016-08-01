@@ -7,48 +7,29 @@
 //
 
 import UIKit
+import CoreData
 
 class MainTableViewController: UITableViewController {
     
     var userID: String = ""
     
+    var messageDeleteSemaphore: Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Conversations"
         
-        //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+        // CLEAR CORE DATA
+        // for dev purposes
+        //self.clearCoreData(["Messages"])
         
+        //------------------------------START: DELETE READ MESSAGES FROM SERVER-----------------------------------------------------
         
-        // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
-        let resource: String = userID + "/" + "main_page"
-        let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
-        http.GET({ (json) -> Void in
-            let data = json["success"] as! [String:AnyObject]
-            if !data.isEmpty {
-                let contacts = data["contacts"] as! [String:AnyObject]
-                let convos = data["convos"] as! [String:AnyObject]
-                let messages = data["messages"] as! [String:AnyObject]
-                Cache.sharedInstance.contactsCache = contacts
-                Cache.sharedInstance.convosCache = convos
-                Cache.sharedInstance.messagesCache = messages
-            } else {
-                let data = json["data"] as! [String:AnyObject]
-                let error = data["error"] as! String
-                print(error)
-            }
-        })
+        print(Cache.sharedInstance.messagesCache)
+        self.deleteMessages()
+        print(Cache.sharedInstance.messagesCache)
         
-        // Comment this out to see if, upon loading a session of the app and logging in, the main table is populated with convos from the cache
-        // The idea is that upon logging in but before displaying the main page, viewdidload is run, with the asynchronous api call above populating the cache with necessary data
-        // it runs in the background and then sleep is executed allowing the data to fill
-        // then dotablerefresh is called which simply runs the tableview data population methods
-        sleep(1)
-        
-        doTableRefresh()
-        
-        //------------------------------END: SAVE TO CACHE-----------------------------------------------------
-        
+        //------------------------------END: DELETE READ MESSAGES FROM SERVER-----------------------------------------------------
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -59,14 +40,40 @@ class MainTableViewController: UITableViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("Main Table View Controller: " + userID)
-    }
-    
-    override func viewDidAppear(animated: Bool) {
-        let loadingController = UIAlertController(title: "Loading", message: " generating conversations.", preferredStyle: UIAlertControllerStyle.Alert)
-        self.presentViewController(loadingController, animated: true, completion: nil)
-        sleep(1)
-        doTableRefresh()
-        self.dismissViewControllerAnimated(true, completion: nil)
+        
+        if (messageDeleteSemaphore) {
+            //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+            messageDeleteSemaphore = false
+            
+            
+            // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
+            let resource: String = userID + "/" + "main_page"
+            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
+            http.GET({ (json) -> Void in
+                let data = json["success"] as! [String:AnyObject]
+                if !data.isEmpty {
+                    let contacts = data["contacts"] as! [String:AnyObject]
+                    let convos = data["convos"] as! [String:AnyObject]
+                    let messages = data["messages"] as! [String:AnyObject]
+                    Cache.sharedInstance.contactsCache = contacts
+                    Cache.sharedInstance.convosCache = convos
+                    print("messages saved to cache")
+                    Cache.sharedInstance.messagesCache = messages
+                    self.doTableRefresh()
+                } else {
+                    let data = json["data"] as! [String:AnyObject]
+                    let error = data["error"] as! String
+                    print(error)
+                }
+            })
+            
+            // Comment this out to see if, upon loading a session of the app and logging in, the main table is populated with convos from the cache
+            // The idea is that upon logging in but before displaying the main page, viewdidload is run, with the asynchronous api call above populating the cache with necessary data
+            // it runs in the background and then sleep is executed allowing the data to fill
+            // then dotablerefresh is called which simply runs the tableview data population methods
+            
+            //------------------------------END: SAVE TO CACHE-----------------------------------------------------
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -235,6 +242,93 @@ class MainTableViewController: UITableViewController {
     
     //------------------------------END: SENDING DATA-----------------------------------------------------
     
+    //------------------------------START: CORE DATA METHODS-----------------------------------------------------
+    
+    func deleteMessages() -> Void {
+        let messageIDs: String = self.fetchMessagesToDelete()
+        print("message id fetch: " + messageIDs)
+        if (messageIDs != "") {
+            let resource: String = self.userID + "/message"
+            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["message_ids":messageIDs])
+            http.PUT({ (json) -> Void in
+                let data = json["data"] as! [String:AnyObject]
+                let messageIDs: String = data["message_ids"] as! String
+                let success = String(json["success"]!)
+                if (success == "1") {
+                    self.deleteFromCoreData("Messages")
+                    let messageDeletionAlert = UIAlertController(title: "Messages Deleted", message: messageIDs, preferredStyle: UIAlertControllerStyle.Alert)
+                    let messageSentAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                    messageDeletionAlert.addAction(messageSentAction)
+                    NSOperationQueue.mainQueue().addOperationWithBlock {
+                        self.presentViewController(messageDeletionAlert, animated: true, completion: nil)
+                    }
+                } else {
+                    print("messages not successfully deleted from the server")
+                }
+            })
+        }
+        messageDeleteSemaphore = true
+    }
+    
+    // Anything added to the Core Data cache is to be deleted
+    // returns a string of message ids to be delete (userid, messageid) sufficient to identify an exact message displayed in a users conversations
+    func fetchMessagesToDelete() -> String {
+        var messageIDs = ""
+        let object = DataController().managedObjectContext
+        let objectFetch = NSFetchRequest(entityName: "Messages")
+        do {
+            let fetchedObjects = try object.executeFetchRequest(objectFetch)
+            print("Number of messages: " + String(fetchedObjects.count))
+            if (!fetchedObjects.isEmpty) {
+                for i in 0...(fetchedObjects.count-1) {
+                    let fetchedObject = fetchedObjects[i] as! NSManagedObject
+                    let messageID: String = fetchedObject.valueForKey("message_id") as! String
+                    if (i != fetchedObjects.count-1) {
+                        messageIDs += messageID + ","
+                    } else {
+                        messageIDs += messageID
+                    }
+                }
+            }
+        } catch {
+            fatalError("Failed to fetch object: \(error)")
+        }
+        return messageIDs
+    }
+    
+    func deleteFromCoreData(entity: String){
+        let object = DataController().managedObjectContext
+        let objectFetch = NSFetchRequest(entityName: entity)
+            
+        do {
+            let fetchedObjects = try object.executeFetchRequest(objectFetch)
+            for i in 0...(fetchedObjects.count-1) {
+                let fetchedObject = fetchedObjects[i] as! NSManagedObject
+                object.deleteObject(fetchedObject)
+                print("deleted object")
+            }
+        } catch {
+            fatalError("Failed to fetch object: \(error)")
+        }
+        do {
+            try object.save()
+        } catch {
+            let saveError = error as NSError
+            print(saveError)
+        }
+    }
+    
+    func clearCoreData(entities: [String]) {
+        for i in 0...(entities.count-1) {
+            let entity: String = entities[i]
+            deleteFromCoreData(entity)
+        }
+    }
+    
+    //------------------------------END: CORE DATA METHODS-----------------------------------------------------
+
+
+    
     //------------------------------START: TABLE METHODS-----------------------------------------------------
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -250,17 +344,12 @@ class MainTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("table method")
-        print(Cache.sharedInstance.convosCache.count)
         return Cache.sharedInstance.convosCache.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        print("table method")
-        print(Cache.sharedInstance.convosCache)
         let cell = tableView.dequeueReusableCellWithIdentifier("convo", forIndexPath: indexPath)
         // Configure the cell...
-        print((Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"])
         cell.textLabel!.text = (Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"]
         return cell
     }
