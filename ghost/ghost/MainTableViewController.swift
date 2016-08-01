@@ -12,8 +12,6 @@ import CoreData
 class MainTableViewController: UITableViewController {
     
     var userID: String = ""
-    
-    var messageDeleteSemaphore: Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,9 +23,31 @@ class MainTableViewController: UITableViewController {
         
         //------------------------------START: DELETE READ MESSAGES FROM SERVER-----------------------------------------------------
         
-        print(Cache.sharedInstance.messagesCache)
-        self.deleteMessages()
-        print(Cache.sharedInstance.messagesCache)
+        let messageIDs: String = self.fetchMessagesToDelete()
+        print("message id fetch: " + messageIDs)
+        if (messageIDs != "") {
+            let resource: String = self.userID + "/message"
+            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["message_ids":messageIDs])
+            http.PUT({ (json) -> Void in
+                let data = json["data"] as! [String:AnyObject]
+                let messageIDs: String = data["message_ids"] as! String
+                let success = String(json["success"]!)
+                if (success == "1") {
+                    self.deleteFromCoreData("Messages")
+                    let messageDeletionAlert = UIAlertController(title: "Messages Deleted", message: messageIDs, preferredStyle: UIAlertControllerStyle.Alert)
+                    let messageSentAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+                    messageDeletionAlert.addAction(messageSentAction)
+                    NSOperationQueue.mainQueue().addOperationWithBlock {
+                        self.presentViewController(messageDeletionAlert, animated: true, completion: nil)
+                    }
+                    self.mainPage()
+                } else {
+                    print("messages not successfully deleted from the server")
+                }
+            })
+        } else {
+            self.mainPage()
+        }
         
         //------------------------------END: DELETE READ MESSAGES FROM SERVER-----------------------------------------------------
         
@@ -40,40 +60,6 @@ class MainTableViewController: UITableViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("Main Table View Controller: " + userID)
-        
-        if (messageDeleteSemaphore) {
-            //------------------------------START: SAVE TO CACHE-----------------------------------------------------
-            messageDeleteSemaphore = false
-            
-            
-            // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
-            let resource: String = userID + "/" + "main_page"
-            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
-            http.GET({ (json) -> Void in
-                let data = json["success"] as! [String:AnyObject]
-                if !data.isEmpty {
-                    let contacts = data["contacts"] as! [String:AnyObject]
-                    let convos = data["convos"] as! [String:AnyObject]
-                    let messages = data["messages"] as! [String:AnyObject]
-                    Cache.sharedInstance.contactsCache = contacts
-                    Cache.sharedInstance.convosCache = convos
-                    print("messages saved to cache")
-                    Cache.sharedInstance.messagesCache = messages
-                    self.doTableRefresh()
-                } else {
-                    let data = json["data"] as! [String:AnyObject]
-                    let error = data["error"] as! String
-                    print(error)
-                }
-            })
-            
-            // Comment this out to see if, upon loading a session of the app and logging in, the main table is populated with convos from the cache
-            // The idea is that upon logging in but before displaying the main page, viewdidload is run, with the asynchronous api call above populating the cache with necessary data
-            // it runs in the background and then sleep is executed allowing the data to fill
-            // then dotablerefresh is called which simply runs the tableview data population methods
-            
-            //------------------------------END: SAVE TO CACHE-----------------------------------------------------
-        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -242,33 +228,39 @@ class MainTableViewController: UITableViewController {
     
     //------------------------------END: SENDING DATA-----------------------------------------------------
     
-    //------------------------------START: CORE DATA METHODS-----------------------------------------------------
-    
-    func deleteMessages() -> Void {
-        let messageIDs: String = self.fetchMessagesToDelete()
-        print("message id fetch: " + messageIDs)
-        if (messageIDs != "") {
-            let resource: String = self.userID + "/message"
-            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["message_ids":messageIDs])
-            http.PUT({ (json) -> Void in
+    func mainPage() -> Void {
+        //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+        
+        // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
+        let resource: String = self.userID + "/" + "main_page"
+        let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
+        http.GET({ (json) -> Void in
+            let data = json["success"] as! [String:AnyObject]
+            if !data.isEmpty {
+                let contacts = data["contacts"] as! [String:AnyObject]
+                let convos = data["convos"] as! [String:AnyObject]
+                let messages = data["messages"] as! [String:AnyObject]
+                Cache.sharedInstance.contactsCache = contacts
+                Cache.sharedInstance.convosCache = convos
+                Cache.sharedInstance.messagesCache = messages
+                self.doTableRefresh()
+            } else {
                 let data = json["data"] as! [String:AnyObject]
-                let messageIDs: String = data["message_ids"] as! String
-                let success = String(json["success"]!)
-                if (success == "1") {
-                    self.deleteFromCoreData("Messages")
-                    let messageDeletionAlert = UIAlertController(title: "Messages Deleted", message: messageIDs, preferredStyle: UIAlertControllerStyle.Alert)
-                    let messageSentAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
-                    messageDeletionAlert.addAction(messageSentAction)
-                    NSOperationQueue.mainQueue().addOperationWithBlock {
-                        self.presentViewController(messageDeletionAlert, animated: true, completion: nil)
-                    }
-                } else {
-                    print("messages not successfully deleted from the server")
-                }
-            })
-        }
-        messageDeleteSemaphore = true
+                let error = data["error"] as! String
+                print(error)
+            }
+        })
+        
+        // Comment this out to see if, upon loading a session of the app and logging in, the main table is populated with convos from the cache
+        // The idea is that upon logging in but before displaying the main page, viewdidload is run, with the asynchronous api call above populating the cache with necessary data
+        // it runs in the background and then sleep is executed allowing the data to fill
+        // then dotablerefresh is called which simply runs the tableview data population methods
+        
+        //------------------------------END: SAVE TO CACHE-----------------------------------------------------
     }
+    
+    
+    //------------------------------START: CORE DATA METHODS-----------------------------------------------------
     
     // Anything added to the Core Data cache is to be deleted
     // returns a string of message ids to be delete (userid, messageid) sufficient to identify an exact message displayed in a users conversations
