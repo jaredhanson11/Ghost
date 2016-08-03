@@ -25,7 +25,7 @@ class main_page(Resource):
         data.update({'contacts': contacts})
         data.update({'convos': convos})
         data.update({'messages': messages})
-        ret = {'success': data}
+        ret = {'success': 0, 'data': data}
         print ret
         return ret
 
