@@ -18,17 +18,24 @@ class convo(Resource):
         ret = _get_convo(user_id)
         return ret
 
-
-def _get_convo(user_id):
+# main page methods
+def _get_convo(user_id, convo_ids_to_delete):
     database = _get_db()
     cursor = database.cursor()
+    if len(convo_ids_to_delete) != 0:
+        convo_ids_to_delete_str = tuple(convo_ids_to_delete.split(','))
+        select_sql = \
+                '''
+                SELECT convo_id FROM users_convos WHERE user_id=%s AND convo_id NOT IN %s
+                '''
+        cursor.execute(select_sql, (user_id,convo_ids_to_delete_str))
+    else:
+        select_sql = \
+                '''
+                SELECT convo_id FROM users_convos WHERE user_id=%s
+                '''
+        cursor.execute(select_sql, (user_id,))
 
-    select_sql = \
-            '''
-            SELECT convo_id FROM users_convos WHERE user_id=%s
-            '''
-
-    cursor.execute(select_sql, (user_id,))
     query = cursor.fetchall()
 
     convo_name_sql = \
@@ -51,6 +58,35 @@ def _get_convo(user_id):
         convo.update({'members': members_csv})
         convos.update({convo_id: convo})
 
-    data = {'convos': convos}
-    print {'success': 1, 'data': data}
+    if len(convo_ids_to_delete) != 0:
+        convo_ids_deleted = delete_convos(user_id, convo_ids_to_delete)
+    else:
+        convo_ids_deleted = ''
+
+    data = {'convos': convos, 'deleted': convo_ids_deleted}
+    #print {'success': 1, 'data': data}
     return {'success': 1, 'data': data}
+
+def delete_convos(user_id,convo_ids_to_delete):
+    database = _get_db()
+    cursor = database.cursor()
+
+    delete_inbox_sql = \
+            '''
+            DELETE FROM users_convos WHERE user_id=%s AND convo_id=%s
+            '''
+
+    convo_ids_list = convo_ids_to_delete.split(',')
+    convo_ids_set = set(convo_ids_list)
+
+    deleted_ids_list = []
+    for convo_id in convo_ids_set:
+        cursor.execute(delete_inbox_sql, (user_id, convo_id))
+
+        if int(cursor.rowcount):
+            deleted_ids_list.append(convo_id)
+
+    database.commit()
+
+    convo_ids = ','.join(deleted_ids_list)
+    return convo_ids

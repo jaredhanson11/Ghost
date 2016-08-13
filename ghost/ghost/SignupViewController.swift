@@ -30,7 +30,6 @@ class SignupViewController: UIViewController {
     }
     
     @IBAction func signup(sender: AnyObject) {
-        //  DATA VALIDATION
         
         let usernameText: String = username.text!
         let passwordText: String = password.text!
@@ -63,10 +62,7 @@ class SignupViewController: UIViewController {
             })
         } else {
             let http = HTTPRequests(host: "localhost", port: "5000", resource: "signup", params: ["username": usernameText, "password" : passwordText])
-            // Critical importance: pass callbacks to asychronous tasks to gather the data
             http.POST({ (json) -> Void in
-                // ISSUE: in success = 0 I have to cast anyobject ostring, but in success = 1, I convert to string
-                // essentially why is the type inference different for what is essentially the same thing returned by api?
                 let success = json["success"] as! Int
                 let data = json["data"] as! [String:AnyObject]
                 if success == 1 {
@@ -79,8 +75,6 @@ class SignupViewController: UIViewController {
                         let signupSuccessAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
                         signupSuccessAlert.addAction(signupSuccessAction)
                         self.presentViewController(signupSuccessAlert, animated: true, completion: nil)
-                        // ADD with a race condition, literally need to delay this a split sec
-                        // self.navigationController?.popViewControllerAnimated(true)
                     }
                 } else {
                     let error = data["error"] as! String

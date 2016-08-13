@@ -47,7 +47,7 @@ class contact(Resource):
 
         if not query:
             data = {'error': 'The username does not exist'}
-            print {'success': 0, 'data': data}
+            #print {'success': 0, 'data': data}
             return {'success': 0, 'data': data}
         else:
             contact_id = query[0]
@@ -59,7 +59,7 @@ class contact(Resource):
                 database.commit()
                 data = {contact_id: {'contact_username': contact_username,
                                      'is_contact': 1}}
-                print {'success': 1, 'data': data}
+                #print {'success': 1, 'data': data}
                 return {'success': 1, 'data': data}
             else:
                 is_contact = int(query[0])
@@ -69,11 +69,11 @@ class contact(Resource):
                     database.commit()
                     data = {contact_id: {'contact_username': contact_username,
                                          'is_contact': 1}}
-                    print {'success': 1, 'data': data}
+                    #print {'success': 1, 'data': data}
                     return {'success': 1, 'data': data}
                 else:
                     data = {'error' : '%s is already on your contact list' % (contact_username)}
-                    print {'success' : 0, 'data' : data}
+                    #print {'success' : 0, 'data' : data}
                     return {'success' : 0, 'data' : data}
 
 
@@ -90,21 +90,29 @@ class contact(Resource):
         ret = _get_contact(user_id)
         return ret
 
-
-def _get_contact(user_id):
+# main page methods
+def _get_contact(user_id,contact_ids_to_delete):
     database = _get_db()
     cursor = database.cursor()
 
-    select_sql = \
-            '''
-            SELECT contact_id,is_contact FROM contacts WHERE user_id=%s
-            '''
+    if len(contact_ids_to_delete) != 0:
+        contact_ids_to_delete_str = tuple(contact_ids_to_delete.split(','))
+        select_sql = \
+                '''
+                SELECT contact_id,is_contact FROM contacts WHERE user_id=%s AND contact_id NOT IN %s
+                '''
+        cursor.execute(select_sql, (user_id,contact_ids_to_delete_str))
+    else:
+        select_sql = \
+                '''
+                SELECT contact_id,is_contact FROM contacts WHERE user_id=%s
+                '''
+        cursor.execute(select_sql, (user_id,))
+
     get_username_sql = \
             '''
             SELECT username FROM users WHERE user_id=%s
             '''
-
-    cursor.execute(select_sql, (user_id,))
     query = cursor.fetchall()
 
     contacts = {}
@@ -115,6 +123,35 @@ def _get_contact(user_id):
                                      'is_contact': is_contact}}
         contacts.update(contact)
 
-    data = {'contacts': contacts}
-    print {'success': 1, 'data': data}
+    if len(contact_ids_to_delete) != 0:
+        contact_ids_deleted = delete_contacts(user_id,contact_ids_to_delete)
+    else:
+        contact_ids_deleted = ''
+
+    data = {'contacts': contacts, 'deleted': contact_ids_deleted}
+    #print {'success': 1, 'data': data}
     return {'success': 1, 'data': data}
+
+def delete_contacts(user_id,contact_ids_to_delete):
+    database = _get_db()
+    cursor = database.cursor()
+
+    delete_inbox_sql = \
+            '''
+            DELETE FROM contacts WHERE user_id=%s AND contact_id=%s
+            '''
+
+    contact_ids_list = contact_ids_to_delete.split(',')
+    contact_ids_set = set(contact_ids_list)
+
+    deleted_ids_list = []
+    for contact_id in contact_ids_set:
+        cursor.execute(delete_inbox_sql, (user_id, contact_id))
+
+        if int(cursor.rowcount):
+            deleted_ids_list.append(contact_id)
+
+    database.commit()
+
+    contact_ids = ','.join(deleted_ids_list)
+    return contact_ids

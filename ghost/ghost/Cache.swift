@@ -9,6 +9,7 @@
 import Foundation
 
 class Cache {
+    
     var convosCache: [String:AnyObject] = [:]
     var messagesCache: [String:AnyObject] = [:]
     var contactsCache: [String:AnyObject] = [:]
@@ -53,6 +54,23 @@ class Cache {
                 }
             }
         }
+    }
+
+    // REMOVE CONTACTS WHERE IS_CONTACT=0
+    func getRealContacts(contacts: [String:AnyObject]) -> [String:AnyObject] {
+        var contactsMutable = contacts
+        let contactIDs = Array(contactsMutable.keys)
+        if (!contactIDs.isEmpty) {
+            for i in 0...(contactIDs.count-1) {
+                let key = contactIDs[i]
+                let data = contactsMutable[key] as! [String:AnyObject]
+                let isContact = String(data["is_contact"]!) // swift infers this as int so string constructor must be used instead of casting operation
+                if (isContact == "0") {
+                    contactsMutable.removeValueForKey(key)
+                }
+            }
+        }
+        return contactsMutable
     }
     
     //------------------------------------END: DELETE METHODS------------------------------------
