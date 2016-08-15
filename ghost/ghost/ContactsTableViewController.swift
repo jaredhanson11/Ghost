@@ -19,20 +19,10 @@ class ContactsTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Contacts"
-    
-        // LOAD CONTACTS FROM CACHE (REMOVE CONTACTS WHERE IS_CONTACT=0)
-        let contactIDs = Array(contactsIsContact.keys)
-        if (!contactIDs.isEmpty) {
-            for i in 0...(contactIDs.count-1) {
-                let key = contactIDs[i]
-                let data = contactsIsContact[key] as! [String:AnyObject]
-                let isContact = String(data["is_contact"]!) // swift infers this as int so string constructor must be used instead of casting operation
-                if (isContact == "0") {
-                    contactsIsContact.removeValueForKey(key)
-                }
-            }
-        }
-        print(contactsIsContact)
+        // get real contacts: is_contact = 1
+        contactsIsContact = Cache.sharedInstance.getRealContacts(contactsIsContact)
+        print(contactsIsContact.count)
+        doTableRefresh()
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -75,14 +65,14 @@ class ContactsTableViewController: UITableViewController {
                 addContactIssue.addAction(action)
                 self.presentViewController(addContactIssue, animated: true, completion: nil)
             } else {
-                // SAVE TO SERVER: CONTACT
+                // save to server: contact
                 let resource: String = self.userID + "/contact"
                 let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["username" : username])
                 http.POST({ (json) -> Void in
                     let success = json["success"] as! Int
                     let data = json["data"] as! [String:AnyObject]
                     if (success == 1) {
-                        // SAVE TO CACHE: CONTACT
+                        // save to cache: contact
                         let contact_id = data.keys.first!
                         let contactDict = data[contact_id] as! [String:AnyObject]
                         let isContact = String(contactDict["is_contact"]!) // by definition = 1
@@ -126,6 +116,7 @@ class ContactsTableViewController: UITableViewController {
     
     //------------------------------START: MISCELLANEOUS METHODS---------------------------------------------------
     
+    // TODO: implement a UIAlertController class
     func addTextFieldToAlert(alert: UIAlertController, placeholder: String) {
         alert.addTextFieldWithConfigurationHandler {
             (textField: UITextField) -> Void in
@@ -159,11 +150,26 @@ class ContactsTableViewController: UITableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("contact-cell", forIndexPath: indexPath)
         // Configure the cell...
-        let key = Array(contactsIsContact.keys)[indexPath.row]
+        let key = Array(contactsIsContact.keys)[indexPath.item]
         let data = contactsIsContact[key] as! [String:AnyObject]
         let username = data["contact_username"] as! String
         cell.textLabel?.text = username
         return cell
+    }
+    
+    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if (editingStyle == .Delete) {
+            tableView.beginUpdates()
+            let key = Array(Cache.sharedInstance.contactsCache.keys)[indexPath.row]
+            // delete from both the virtual cache and the contacts array where is_contact=1 for all contacts
+            Cache.sharedInstance.deleteContactFromCache(key)
+            contactsIsContact.removeValueForKey(Array(contactsIsContact.keys)[indexPath.row])
+            // Note that indexPath is wrapped in an array:  [indexPath]
+            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+            tableView.endUpdates()
+            let data = ["contact_id" : key]
+            CoreDataController.sharedInstance.saveToCoreData("Contacts", data: data)
+        }
     }
     
     /*

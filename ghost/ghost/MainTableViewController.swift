@@ -7,48 +7,26 @@
 //
 
 import UIKit
+import CoreData
 
 class MainTableViewController: UITableViewController {
     
     var userID: String = ""
-    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Conversations"
         
-        //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+        //CoreDataController.sharedInstance.clearCoreData(["Messages"])
         
-        
-        // SAVE TO CACHE: CONTACTS, CONVOS, MESSAGES
-        let resource: String = userID + "/" + "main_page"
-        let http = HTTPRequests(host: "localhost", port: "5000", resource: resource)
-        http.GET({ (json) -> Void in
-            let data = json["success"] as! [String:AnyObject]
-            if !data.isEmpty {
-                let contacts = data["contacts"] as! [String:AnyObject]
-                let convos = data["convos"] as! [String:AnyObject]
-                let messages = data["messages"] as! [String:AnyObject]
-                Cache.sharedInstance.contactsCache = contacts
-                Cache.sharedInstance.convosCache = convos
-                Cache.sharedInstance.messagesCache = messages
-            } else {
-                let data = json["data"] as! [String:AnyObject]
-                let error = data["error"] as! String
-                print(error)
-            }
-        })
-        
-        // Comment this out to see if, upon loading a session of the app and logging in, the main table is populated with convos from the cache
-        // The idea is that upon logging in but before displaying the main page, viewdidload is run, with the asynchronous api call above populating the cache with necessary data
-        // it runs in the background and then sleep is executed allowing the data to fill
-        // then dotablerefresh is called which simply runs the tableview data population methods
-        sleep(1)
-        
-        doTableRefresh()
-        
-        //------------------------------END: SAVE TO CACHE-----------------------------------------------------
-        
+        let messageIDsToDelete = CoreDataController.sharedInstance.fetchEntitiesToDelete("Messages")
+        let contactIDsToDelete = CoreDataController.sharedInstance.fetchEntitiesToDelete("Contacts")
+        let convoIDsToDelete = CoreDataController.sharedInstance.fetchEntitiesToDelete("Convos")
+        print("message ids to delete: \(messageIDsToDelete)")
+        print("contact ids to delete: \(contactIDsToDelete)")
+        print("convo ids to delete: \(convoIDsToDelete)")
+        // load data from server into virtual cache
+        self.mainPage(messageIDsToDelete, contactIDsToDelete: contactIDsToDelete, convoIDsToDelete: convoIDsToDelete)
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -59,14 +37,6 @@ class MainTableViewController: UITableViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("Main Table View Controller: " + userID)
-    }
-    
-    override func viewDidAppear(animated: Bool) {
-        let loadingController = UIAlertController(title: "Loading", message: " generating conversations.", preferredStyle: UIAlertControllerStyle.Alert)
-        self.presentViewController(loadingController, animated: true, completion: nil)
-        sleep(1)
-        doTableRefresh()
-        self.dismissViewControllerAnimated(true, completion: nil)
     }
     
     override func didReceiveMemoryWarning() {
@@ -107,7 +77,6 @@ class MainTableViewController: UITableViewController {
                 })
             } else {
                 usersIDString = self.getUserIDs(usersList)
-                
                 if (usersIDString == nil) {
                     let addConvoIssue = UIAlertController(title: "Conversation Issue", message: "Please be sure all users exist and are in your contacts list.", preferredStyle: .Alert)
                     let addConvoIssueAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
@@ -196,13 +165,7 @@ class MainTableViewController: UITableViewController {
         // Check if all contacts could be translated into their contactIDs
         var usersIDString = ""
         if (usersList.count == usersIDList.count) {
-            for i in 0...(usersIDList.count-1) {
-                if i == (usersIDList.count-1) {
-                    usersIDString += usersIDList[i]
-                } else {
-                    usersIDString += usersIDList[i] + ","
-                }
-            }
+            usersIDString = usersIDList.joinWithSeparator(",")
             return usersIDString
         } else {
             return nil
@@ -235,6 +198,65 @@ class MainTableViewController: UITableViewController {
     
     //------------------------------END: SENDING DATA-----------------------------------------------------
     
+    // TODO: make these calls more modular
+    
+    //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+    
+    func mainPage(messageIDsToDelete: String, contactIDsToDelete: String, convoIDsToDelete: String) -> Void {
+        let resource: String = self.userID + "/" + "main_page"
+        let params: [String:String] = ["message_ids_to_delete" : messageIDsToDelete, "convo_ids_to_delete" : convoIDsToDelete, "contact_ids_to_delete" : contactIDsToDelete]
+        let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: params)
+        http.POST({ (json) -> Void in
+            let data = json["success"] as! [String:AnyObject]
+            if !data.isEmpty {
+                let contacts = data["contacts"] as! [String:AnyObject]
+                let convos = data["convos"] as! [String:AnyObject]
+                let messages = data["messages"] as! [String:AnyObject]
+                let messagesDeleted = data["messages_deleted"] as! String
+                let contactsDeleted = data["contacts_deleted"] as! String
+                let convosDeleted = data["convos_deleted"] as! String
+                print("deleted messages: \(messagesDeleted)")
+                print("deleted contacts: \(contactsDeleted)")
+                print("deleted convos: \(convosDeleted)")
+                Cache.sharedInstance.contactsCache = contacts
+                Cache.sharedInstance.convosCache = convos
+                Cache.sharedInstance.messagesCache = messages
+                CoreDataController.sharedInstance.clearCoreData(["Messages","Convos","Contacts"])
+                NSOperationQueue.mainQueue().addOperationWithBlock {
+                    self.tableView.reloadData()
+                }
+            } else {
+                let data = json["data"] as! [String:AnyObject]
+                let error = data["error"] as! String
+                print(error)
+            }
+        })
+    }
+    
+    //------------------------------END: SAVE TO CACHE-----------------------------------------------------
+    
+    //------------------------------START: DELETE READ MESSAGES FROM SERVER-----------------------------------------------------
+    
+//    func deleteMessages(messageIDs: String) -> Void {
+//        if (messageIDs != "") {
+//            let resource: String = self.userID + "/message"
+//            let http = HTTPRequests(host: "localhost", port: "5000", resource: resource, params: ["message_ids":messageIDs])
+//            http.PUT({ (json) -> Void in
+//                let data = json["data"] as! [String:AnyObject]
+//                let messageIDs: String = data["message_ids"] as! String
+//                let success = String(json["success"]!)
+//                if (success == "1") {
+//                    CoreDataController.sharedInstance.deleteFromCoreData("Messages")
+//                    print("Delete messages: \(messageIDs)")
+//                } else {
+//                    print("messages not successfully deleted from the server")
+//                }
+//            })
+//        }
+//    }
+    
+    //------------------------------END: DELETE READ MESSAGES FROM SERVER-----------------------------------------------------
+    
     //------------------------------START: TABLE METHODS-----------------------------------------------------
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -250,21 +272,29 @@ class MainTableViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("table method")
-        print(Cache.sharedInstance.convosCache.count)
         return Cache.sharedInstance.convosCache.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        print("table method")
-        print(Cache.sharedInstance.convosCache)
         let cell = tableView.dequeueReusableCellWithIdentifier("convo", forIndexPath: indexPath)
         // Configure the cell...
-        print((Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"])
         cell.textLabel!.text = (Array(Cache.sharedInstance.convosCache.values)[indexPath.item] as! [String:String])["convo_name"]
         return cell
     }
     
+    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if (editingStyle == .Delete) {
+            tableView.beginUpdates()
+            let key = Array(Cache.sharedInstance.convosCache.keys)[indexPath.row]
+            // delete from the virtual cache
+            Cache.sharedInstance.deleteConvoFromCache(key)
+            // Note that indexPath is wrapped in an array:  [indexPath]
+            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+            tableView.endUpdates()
+            let data = ["convo_id" : key]
+            CoreDataController.sharedInstance.saveToCoreData("Convos", data: data)
+        }
+    }
     
     /*
      // Override to support conditional editing of the table view.

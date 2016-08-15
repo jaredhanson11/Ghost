@@ -53,4 +53,19 @@ class HTTPRequests {
         }
     }
     
+    // a simple put http request
+    // TODO: parameter validation
+    func PUT(callback: (json: [String:AnyObject]) -> Void) {
+        let url: String = "http://" + host + ":" + port + "/" + resource + "/"
+        Alamofire.request(.PUT, url, parameters: self.params, encoding: .JSON).responseJSON {response in
+            switch response.result {
+            case .Success(let data):
+                let data = data as! [String:AnyObject]
+                callback(json:data)
+            case .Failure(let error):
+                print("Request failed with error: \(error)")
+            }
+        }
+    }
+    
 }

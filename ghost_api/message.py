@@ -51,7 +51,6 @@ class message(Resource):
                         VALUES (%s, %s)
                     '''
             recipients_list = recipients.split(',')
-            print recipients_list
             for recipient_id in recipients_list:
                 cursor.execute(user_convo_sql, (convo_id, recipient_id))
             cursor.execute(user_convo_sql, (convo_id, user_id))
@@ -88,7 +87,7 @@ class message(Resource):
         database.commit()
 
         data = {'convo_id': convo_id}
-        print {'success': 1, 'data': data}
+        #print {'success': 1, 'data': data}
         return {'success': 1, 'data': data}
 
     def put(self, user_id):
@@ -116,8 +115,10 @@ class message(Resource):
                 '''
 
         message_ids_list = message_ids_csv.split(',')
+        message_ids_set = set(message_ids_list)
+
         deleted_ids_list = []
-        for message_id in message_ids_list:
+        for message_id in message_ids_set:
             cursor.execute(delete_inbox_sql, (user_id, message_id))
 
             if int(cursor.rowcount):
@@ -127,11 +128,8 @@ class message(Resource):
 
         data = {'message_ids': ','.join(deleted_ids_list)}
 
-        print {'success': 1, 'data': data}
+        #print {'success': 1, 'data': data}
         return {'success': 1, 'data': data}
-
-
-
 
     def get(self, user_id):
         '''
@@ -140,16 +138,25 @@ class message(Resource):
         ret = _get_message(user_id)
         return ret
 
-
-def _get_message(user_id):
+# main page methods
+def _get_message(user_id, message_ids_to_delete):
     database = _get_db()
     cursor = database.cursor()
-
-    get_messages_sql = \
-            '''
-            SELECT message_id FROM users_messages WHERE user_id=%s
-            '''
-    cursor.execute(get_messages_sql, (user_id,))
+    
+    # omits all messages that are to be deleted
+    if len(message_ids_to_delete) != 0:
+        message_ids_to_delete_str = tuple(message_ids_to_delete.split(','))
+        get_messages_sql = \
+                '''
+                SELECT message_id FROM users_messages WHERE user_id=%s AND message_id NOT IN %s
+                '''
+        cursor.execute(get_messages_sql, (user_id,message_ids_to_delete_str))
+    else:
+        get_messages_sql = \
+                '''
+                SELECT message_id FROM users_messages WHERE user_id=%s
+                '''
+        cursor.execute(get_messages_sql, (user_id,))
     query = cursor.fetchall()
 
     get_message_sql = \
@@ -168,6 +175,37 @@ def _get_message(user_id):
                        'user_id': user_id}
         messages[convo_id].append(message_obj)
 
-    data = {'messages': messages}
-    print {'success': 1, 'data': data}
+    # perform deletion of any message_ids
+    # todo: how can we perform this operation in background so we return data right away on main thread?
+    if len(message_ids_to_delete) != 0:
+        message_ids_deleted = delete_messages(user_id,message_ids_to_delete)
+    else:
+        message_ids_deleted = ''
+
+    data = {'messages': messages, 'deleted' : message_ids_deleted}
+    #print {'success': 1, 'data': data}
     return {'success': 1, 'data': data}
+
+def delete_messages(user_id,message_ids_to_delete):
+    database = _get_db()
+    cursor = database.cursor()
+
+    delete_inbox_sql = \
+            '''
+            DELETE FROM users_messages WHERE user_id=%s AND message_id=%s
+            '''
+
+    message_ids_list = message_ids_to_delete.split(',')
+    message_ids_set = set(message_ids_list)
+
+    deleted_ids_list = []
+    for message_id in message_ids_set:
+        cursor.execute(delete_inbox_sql, (user_id, message_id))
+
+        if int(cursor.rowcount):
+            deleted_ids_list.append(message_id)
+
+    database.commit()
+
+    message_ids = ','.join(deleted_ids_list)
+    return message_ids

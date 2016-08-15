@@ -39,7 +39,6 @@ class LoginViewController: UIViewController, SignupControllerDelegate {
     
     // after entering login parameters, user clicks "login" button
     @IBAction func login(sender: AnyObject) {
-        //  DATA VALIDATION
         
         // take in username and password, trim whitespace and newline characters
         let usernameText = username.text!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())

@@ -9,6 +9,7 @@
 import Foundation
 
 class Cache {
+    
     var convosCache: [String:AnyObject] = [:]
     var messagesCache: [String:AnyObject] = [:]
     var contactsCache: [String:AnyObject] = [:]
@@ -25,12 +26,51 @@ class Cache {
         self.convosCache.updateValue(convo, forKey: convoID)
     }
     
+    // add message to cache will be implemented when we have push notifications
+    
     //------------------------------------END: ADD METHODS------------------------------------
     
     //------------------------------------START: DELETE METHODS------------------------------------
     
     func deleteContactFromCache(contactID: String) {
         self.contactsCache.removeValueForKey(contactID)
+    }
+    
+    func deleteConvoFromCache(convoID: String) {
+        self.convosCache.removeValueForKey(convoID)
+    }
+    
+    func deleteMessageFromCache(convoID: String, messageID: String) {
+        var messages = self.messagesCache[convoID] as! [[String:AnyObject]]
+        //print(messages)
+        if (!messages.isEmpty) {
+            for i in 0...(messages.count-1) {
+                let messageIDFromCache = String(messages[i]["message_id"]!)
+                if (messageIDFromCache == messageID) {
+                    messages.removeAtIndex(i)
+                    self.messagesCache.removeValueForKey(convoID)
+                    self.messagesCache.updateValue(messages, forKey: convoID)
+                    break
+                }
+            }
+        }
+    }
+
+    // REMOVE CONTACTS WHERE IS_CONTACT=0
+    func getRealContacts(contacts: [String:AnyObject]) -> [String:AnyObject] {
+        var contactsMutable = contacts
+        let contactIDs = Array(contactsMutable.keys)
+        if (!contactIDs.isEmpty) {
+            for i in 0...(contactIDs.count-1) {
+                let key = contactIDs[i]
+                let data = contactsMutable[key] as! [String:AnyObject]
+                let isContact = String(data["is_contact"]!) // swift infers this as int so string constructor must be used instead of casting operation
+                if (isContact == "0") {
+                    contactsMutable.removeValueForKey(key)
+                }
+            }
+        }
+        return contactsMutable
     }
     
     //------------------------------------END: DELETE METHODS------------------------------------
