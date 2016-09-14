@@ -115,9 +115,9 @@ class ConversationTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("message", forIndexPath: indexPath)
         let messageLabel = cell.viewWithTag(11) as! UILabel
         let usernameLabel = cell.viewWithTag(12) as! UILabel
-        let message = (messagesFromCache[self.convoID]![indexPath.item] as! [String:AnyObject])["message"] as? String
-        let messageID = String((messagesFromCache[self.convoID]![indexPath.item] as! [String:AnyObject])["message_id"]!)
-        let userID = String((messagesFromCache[self.convoID]![indexPath.item] as! [String:AnyObject])["user_id"]!)
+        let message = (messagesFromCache[self.convoID] as! [Int:[String:AnyObject]])[indexPath.item]!["message"] as! String
+        let messageID = (messagesFromCache[self.convoID] as! [Int:[String:AnyObject]])[indexPath.item]!["message_id"] as! String
+        let userID = (messagesFromCache[self.convoID] as! [Int:[String:AnyObject]])[indexPath.item]!["user_id"] as! String
         let username = Cache.sharedInstance.contactsCache[userID]!["contact_username"] as! String
         
         // only display the message if the user was a recipient, the API handles who receives messages

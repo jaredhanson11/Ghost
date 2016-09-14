@@ -23,6 +23,7 @@
 		04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */; };
 		04EB50971D4D08D300DB49BB /* Cache.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 04EB50951D4D08D200DB49BB /* Cache.xcdatamodeld */; };
 		04EB50D91D4D8B2F00DB49BB /* CoreDataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EB50D81D4D8B2F00DB49BB /* CoreDataController.swift */; };
+		04F8A4E61D6289A000451B49 /* ContactInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F8A4E51D6289A000451B49 /* ContactInfoViewController.swift */; };
 		3799BB2ECE2A40A65FE05C7E /* Pods_ghost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 191761CA328F578AC846EACC /* Pods_ghost.framework */; };
 /* End PBXBuildFile section */
 
@@ -81,6 +82,7 @@
 		04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTableViewController.swift; sourceTree = "<group>"; };
 		04EB50961D4D08D200DB49BB /* Cache.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Cache.xcdatamodel; sourceTree = "<group>"; };
 		04EB50D81D4D8B2F00DB49BB /* CoreDataController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataController.swift; sourceTree = "<group>"; };
+		04F8A4E51D6289A000451B49 /* ContactInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactInfoViewController.swift; sourceTree = "<group>"; };
 		191761CA328F578AC846EACC /* Pods_ghost.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ghost.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A39E2608394CEF67D9777F4F /* Pods-ghost.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ghost.release.xcconfig"; path = "Pods/Target Support Files/Pods-ghost/Pods-ghost.release.xcconfig"; sourceTree = "<group>"; };
 		D3EFA8C14CE9447FF979A971 /* Pods-ghost.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ghost.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ghost/Pods-ghost.debug.xcconfig"; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 				04E76E9B1D0B152900B7F9E5 /* MainTableViewController.swift */,
 				040C43C81D37D4CB009C78E7 /* ConversationTableViewController.swift */,
 				048377D41D2D6EAC00A76553 /* ContactsTableViewController.swift */,
+				04F8A4E51D6289A000451B49 /* ContactInfoViewController.swift */,
 				044737451CFF578D004FBC45 /* Validation.swift */,
 				044737471CFF7613004FBC45 /* HTTPRequests.swift */,
 				040C43CC1D37D51C009C78E7 /* Cache.swift */,
@@ -272,6 +275,12 @@
 				TargetAttributes = {
 					044737131CFF4DBB004FBC45 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = F4KXEQ8PJM;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 					044737271CFF4DBB004FBC45 = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -411,6 +420,7 @@
 				04EB50971D4D08D300DB49BB /* Cache.xcdatamodeld in Sources */,
 				044737481CFF7613004FBC45 /* HTTPRequests.swift in Sources */,
 				0447374A1CFF8AE3004FBC45 /* SignupViewController.swift in Sources */,
+				04F8A4E61D6289A000451B49 /* ContactInfoViewController.swift in Sources */,
 				044737461CFF578D004FBC45 /* Validation.swift in Sources */,
 				04EB50D91D4D8B2F00DB49BB /* CoreDataController.swift in Sources */,
 				04E76E9C1D0B152900B7F9E5 /* MainTableViewController.swift in Sources */,
@@ -561,9 +571,10 @@
 			baseConfigurationReference = D3EFA8C14CE9447FF979A971 /* Pods-ghost.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = ghost/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hck.ghost;
+				PRODUCT_BUNDLE_IDENTIFIER = hck.ghost.v1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -573,9 +584,10 @@
 			baseConfigurationReference = A39E2608394CEF67D9777F4F /* Pods-ghost.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = ghost/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = hck.ghost;
+				PRODUCT_BUNDLE_IDENTIFIER = hck.ghost.v1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

@@ -1,0 +1,9 @@
+when app is not running:
+a silent notification which increments the badge counter, but doesn't display
+new message, simply "check app for new message"
+
+when app is running in foreground:
+increment a counter on the convo silently, user goes to that
+
+when app is not in foreground:
+silently increment counter on app and convo

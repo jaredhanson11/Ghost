@@ -12,6 +12,7 @@ import CoreData
 class MainTableViewController: UITableViewController {
     
     var userID: String = ""
+    var newMessage: Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,6 +38,10 @@ class MainTableViewController: UITableViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("Main Table View Controller: " + userID)
+        if (self.newMessage) {
+            print("yeyeyeye")
+            self.mainPageReload()
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -174,7 +179,7 @@ class MainTableViewController: UITableViewController {
     
     @IBAction func quit(sender: AnyObject) {
         // since this view is in the chain of the navigation controler, use POPVIEWCONTROLLER
-        self.navigationController?.popViewControllerAnimated(true)
+        self.navigationController?.popToRootViewControllerAnimated(true)
     }
     
     //------------------------------END: MISCELLANEOUS METHODS---------------------------------------------------
@@ -201,6 +206,17 @@ class MainTableViewController: UITableViewController {
     // TODO: make these calls more modular
     
     //------------------------------START: SAVE TO CACHE-----------------------------------------------------
+    
+    func mainPageReload() -> Void {
+        let messageIDsToDelete = CoreDataController.sharedInstance.fetchEntitiesToDelete("Messages")
+        let contactIDsToDelete = CoreDataController.sharedInstance.fetchEntitiesToDelete("Contacts")
+        let convoIDsToDelete = CoreDataController.sharedInstance.fetchEntitiesToDelete("Convos")
+        print("message ids to delete: \(messageIDsToDelete)")
+        print("contact ids to delete: \(contactIDsToDelete)")
+        print("convo ids to delete: \(convoIDsToDelete)")
+        // load data from server into virtual cache
+        self.mainPage(messageIDsToDelete, contactIDsToDelete: contactIDsToDelete, convoIDsToDelete: convoIDsToDelete)
+    }
     
     func mainPage(messageIDsToDelete: String, contactIDsToDelete: String, convoIDsToDelete: String) -> Void {
         let resource: String = self.userID + "/" + "main_page"
